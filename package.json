@@ -10,15 +10,19 @@
     "tokens:css": "node src/design-tokens/generate-css.js"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-slot": "^1.2.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "firebase": "^12.9.0",
     "framer-motion": "^11.0.0",
     "lucide-react": "^0.460.0",
     "next": "^16.1.6",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "tailwind-merge": "^2.5.0"
+    "react-hook-form": "^7.71.2",
+    "tailwind-merge": "^2.5.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^22.16.5",
