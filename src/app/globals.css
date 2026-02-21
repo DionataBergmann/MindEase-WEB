@@ -1,0 +1,101 @@
+@import "./_colors.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Cores: fonte da verdade em HEX em src/design-tokens/colors.js
+ * Alterar cores: edite colors.js e rode pnpm run tokens:css
+ * Uso: text-foreground | text-muted-foreground | bg-primary | border-border
+ */
+
+@layer components {
+  /* Heading */
+  .heading-hero {
+    @apply font-display text-5xl lg:text-6xl font-extrabold leading-tight text-foreground;
+  }
+  .heading-section {
+    @apply font-display text-3xl font-bold text-foreground;
+  }
+  .heading-section-center {
+    @apply font-display text-3xl font-bold text-center text-foreground;
+  }
+  .heading-card {
+    @apply font-display font-bold leading-none tracking-tight text-foreground;
+  }
+  .heading-nav {
+    @apply font-display text-2xl font-bold text-primary;
+  }
+  .heading-auth {
+    @apply font-display text-3xl font-bold text-primary;
+  }
+
+  /* Text */
+  .text-lead {
+    @apply text-lg text-muted-foreground max-w-lg leading-relaxed;
+  }
+  .text-body {
+    @apply text-foreground leading-relaxed;
+  }
+  .text-muted {
+    @apply text-muted-foreground;
+  }
+  .text-small {
+    @apply text-sm text-muted-foreground font-medium;
+  }
+  .text-small-muted {
+    @apply text-sm text-muted-foreground;
+  }
+  .text-footer {
+    @apply text-sm text-muted-foreground;
+  }
+  .text-link {
+    @apply text-sm text-primary hover:underline font-medium;
+  }
+
+  /* BrandLink */
+  .brand-link--nav {
+    @apply font-display text-2xl font-bold text-primary;
+  }
+  .brand-link--auth {
+    @apply font-display text-3xl font-bold text-primary;
+  }
+
+  /* IconBox */
+  .icon-box {
+    @apply flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10;
+  }
+  .icon-box__icon {
+    @apply h-6 w-6 text-primary;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-body {
+    font-family: var(--font-body);
+  }
+}
