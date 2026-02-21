@@ -4,3 +4,4 @@ export { FeaturesSection } from "./FeaturesSection";
 export { CTASection } from "./CTASection";
 export { LandingFooter } from "./LandingFooter";
 export { SignupForm } from "./SignupForm";
+export { LoginForm } from "./LoginForm";
