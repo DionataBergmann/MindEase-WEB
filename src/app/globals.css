@@ -71,6 +71,33 @@
   }
 }
 
+/* Preferências do usuário (perfil) */
+html[data-font-size="P"] {
+  font-size: 14px;
+}
+html[data-font-size="M"],
+html:not([data-font-size]) {
+  font-size: 16px;
+}
+html[data-font-size="G"] {
+  font-size: 18px;
+}
+[data-contrast="alto"] body {
+  filter: contrast(1.08);
+}
+[data-spacing="amplo"] body {
+  letter-spacing: 0.02em;
+}
+[data-spacing="amplo"] p,
+[data-spacing="amplo"] li {
+  line-height: 1.75;
+}
+[data-animations="reduzidas"] * {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.01ms !important;
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -98,4 +125,9 @@
   .font-body {
     font-family: var(--font-body);
   }
+}
+
+/* Kanban: durante o arraste, a camada de drop fica ativa e aceita soltar em qualquer coluna */
+body.is-dragging-kanban .column-drop-overlay {
+  pointer-events: auto !important;
 }
