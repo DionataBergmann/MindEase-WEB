@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { PreferencesApply } from "@/components/PreferencesApply";
 
 export const metadata: Metadata = {
   title: "MindEase — Estudo sem sobrecarga",
@@ -23,6 +24,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen bg-background text-foreground font-body">
+        <PreferencesApply />
         {children}
       </body>
     </html>

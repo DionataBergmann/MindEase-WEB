@@ -1,5 +1,13 @@
 import { getApps, initializeApp, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import {
+  getAuth,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  type Auth,
+  type User,
+} from "firebase/auth";
+import { getFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -21,7 +29,34 @@ function getFirebaseApp(): FirebaseApp | null {
 
 export function getFirebaseAuth(): Auth | null {
   const app = getFirebaseApp();
-  return app ? getAuth(app) : null;
+  if (!app) return null;
+  const auth = getAuth(app);
+  // Mantém o usuário logado ao recarregar (F5) e entre abas
+  setPersistence(auth, browserLocalPersistence).catch(() => {});
+  return auth;
+}
+
+/** Aguarda o Auth estar pronto (ex.: restauração da sessão) e retorna o usuário atual. Evita "Faça login" quando a sessão ainda não foi restaurada. */
+export function getCurrentUserWhenReady(auth: Auth | null, timeoutMs = 3000): Promise<User | null> {
+  if (!auth) return Promise.resolve(null);
+  const current = auth.currentUser;
+  if (current) return Promise.resolve(current);
+  return new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+      unsubscribe();
+      resolve(auth.currentUser);
+    }, timeoutMs);
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      clearTimeout(timeout);
+      unsubscribe();
+      resolve(user ?? null);
+    });
+  });
+}
+
+export function getFirestoreDb(): Firestore | null {
+  const app = getFirebaseApp();
+  return app ? getFirestore(app) : null;
 }
 
 export function getFirebaseAnalytics() {
