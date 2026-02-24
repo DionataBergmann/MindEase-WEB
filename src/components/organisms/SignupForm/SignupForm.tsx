@@ -44,7 +44,7 @@ export function SignupForm() {
       if (data.name?.trim() && userCredential.user) {
         await updateProfile(userCredential.user, { displayName: data.name.trim() });
       }
-      router.push("/");
+      router.push("/home");
       router.refresh();
     } catch (err: unknown) {
       const code = err && typeof err === "object" && "code" in err ? (err as { code: string }).code : "";
