@@ -39,7 +39,7 @@ export function LoginForm() {
 
     try {
       await signInWithEmailAndPassword(auth, data.email, data.password);
-      router.push("/");
+      router.push("/home");
       router.refresh();
     } catch (err: unknown) {
       const code = err && typeof err === "object" && "code" in err ? (err as { code: string }).code : "";
