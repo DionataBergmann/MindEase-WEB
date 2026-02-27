@@ -1,140 +1,93 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import { Upload, FileText, Loader2, ArrowLeft, CheckCircle, Save } from "lucide-react";
+import { Loader2, ArrowLeft, Save } from "lucide-react";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { motion } from "framer-motion";
 import { AppShell } from "@/components/organisms";
+import { UploadSourcesForm, ProcessedResultsList } from "@/components/upload";
 import { Button, Input } from "@/components/atoms";
-import { getFirebaseAuth, getFirestoreDb, getCurrentUserWhenReady } from "@/lib/firebase";
+import { scrollToElement } from "@/lib/scroll";
+import { useFirebaseGuard } from "@/hooks/useFirebaseGuard";
+import { processSources, getTopicDisplayName } from "@/lib/content-processing";
 import type { ProcessContentResponse } from "@/types/process-content";
-
-async function extractTextFromPdf(file: File): Promise<string> {
-  const pdfjsLib = await import("pdfjs-dist");
-  const version = (pdfjsLib as { version?: string }).version ?? "4.7.76";
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${version}/build/pdf.worker.min.mjs`;
-
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-  const numPages = pdf.numPages;
-  let fullText = "";
-
-  for (let i = 1; i <= numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    const pageText = content.items
-      .map((item) => ("str" in item ? item.str : ""))
-      .join(" ");
-    fullText += pageText + "\n";
-  }
-
-  return fullText.trim();
-}
 
 export default function NewProjectPage() {
   const router = useRouter();
   const [projectName, setProjectName] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [results, setResults] = useState<ProcessContentResponse[]>([]);
   const [processingIndex, setProcessingIndex] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [mergeAllIntoOne, setMergeAllIntoOne] = useState(false);
+  const resultsSectionRef = useRef<HTMLDivElement>(null);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const list = e.target.files;
-    if (!list?.length) return;
-    const pdfs = Array.from(list).filter((f) => f.type === "application/pdf");
-    setFiles(pdfs);
-    setResults([]);
-    setError(null);
-    e.target.value = "";
-  }, []);
+  const hasSources = pdfFiles.length > 0 || imageFiles.length > 0;
+  const topicCount = mergeAllIntoOne
+    ? hasSources ? 1 : 0
+    : pdfFiles.length + imageFiles.length;
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    const list = e.dataTransfer.files;
-    if (!list?.length) return;
-    const pdfs = Array.from(list).filter((f) => f.type === "application/pdf");
-    if (pdfs.length) {
-      setFiles(pdfs);
-      setResults([]);
-      setError(null);
-    }
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => e.preventDefault(), []);
-
-  const removeFile = useCallback((index: number) => {
-    setFiles((prev) => prev.filter((_, i) => i !== index));
+  const removeResult = useCallback((index: number) => {
     setResults((prev) => prev.filter((_, i) => i !== index));
   }, []);
 
+  const firebaseGuard = useFirebaseGuard(setError, {
+    loginMessage: "Faça login para salvar o projeto.",
+    firebaseMessage: "Firebase não está configurado.",
+  });
+
   const handleProcess = async () => {
-    if (!files.length) {
-      setError("Selecione um ou mais PDFs.");
+    if (topicCount === 0) {
+      setError("Adicione PDFs e/ou fotos.");
       return;
     }
     setError(null);
     setResults([]);
 
-    const allResults: ProcessContentResponse[] = [];
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      setProcessingIndex(i);
-      try {
-        const text = await extractTextFromPdf(file);
-        if (!text) {
-          setError(`Não foi possível extrair texto de "${file.name}" (pode estar vazio ou ser imagem).`);
-          setProcessingIndex(null);
-          return;
-        }
-        const res = await fetch("/api/process-content", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error ?? `Erro ao processar "${file.name}" com a IA.`);
-          setProcessingIndex(null);
-          return;
-        }
-        allResults.push(data as ProcessContentResponse);
-        setResults([...allResults]);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : `Erro ao processar "${file.name}".`);
-        setProcessingIndex(null);
-        return;
+    try {
+      const allResults = await processSources({
+        pdfFiles,
+        imageFiles,
+        mergeAllIntoOne,
+        onStep: (index) => setProcessingIndex(index),
+      });
+      setProcessingIndex(null);
+      setResults(allResults);
+      if (allResults.length > 0) {
+        setTimeout(() => {
+          setPdfFiles([]);
+          setImageFiles([]);
+          if (resultsSectionRef.current) {
+            scrollToElement(resultsSectionRef.current, { block: "start" });
+          }
+        }, 0);
       }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erro ao processar.");
+      setProcessingIndex(null);
     }
-    setProcessingIndex(null);
   };
 
   const handleSaveProject = async () => {
-    if (!results.length || results.length !== files.length) return;
-    const auth = getFirebaseAuth();
-    const user = await getCurrentUserWhenReady(auth);
-    if (!user) {
-      setError("Faça login para salvar o projeto.");
-      return;
-    }
-    const db = getFirestoreDb();
-    if (!db) {
-      setError("Firebase não está configurado.");
-      return;
-    }
+    if (!results.length) return;
+    const ctx = await firebaseGuard();
+    if (!ctx) return;
+    const { user, db } = ctx;
     setIsSaving(true);
     setError(null);
     try {
+      const firstName = pdfFiles[0]?.name ?? (imageFiles.length > 0 ? "Fotos" : "");
       const title =
         projectName.trim() ||
-        (files[0]?.name ?? "").replace(/\.pdf$/i, "") ||
+        firstName.replace(/\.(pdf|jpg|jpeg|png|webp)$/i, "") ||
         "Sem título";
       const materiais = results.map((result, i) => ({
         id: crypto.randomUUID(),
-        nomeArquivo: files[i]?.name ?? undefined,
+        nomeArquivo: getTopicDisplayName(i, pdfFiles, imageFiles),
         resumo: result.resumo,
         resumoBreve: result.resumoBreve,
         resumoMedio: result.resumoMedio,
@@ -180,124 +133,48 @@ export default function NewProjectPage() {
             Novo projeto de estudo
           </h1>
           <p className="text-muted-foreground mb-8">
-            Envie um ou vários PDFs. O texto é extraído no navegador e enviado à IA para gerar resumo e cards de estudo — cada PDF vira um tópico do projeto.
+            Envie PDFs e/ou fotos de páginas. Abaixo você escolhe se quer um tópico por arquivo ou juntar tudo em um único tópico com resumo e cards.
           </p>
 
           <div className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium text-foreground">
-                Nome do projeto (opcional)
+                Nome do projeto
               </label>
               <Input
                 id="name"
-                placeholder="Ex.: Biologia Celular"
+                placeholder="Ex.: Projeto"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium text-foreground block mb-2">
-                Arquivos PDF (vários de uma vez)
-              </label>
-              <input
-                type="file"
-                accept=".pdf,application/pdf"
-                multiple
-                onChange={handleFileChange}
-                className="hidden"
-                id="pdf-input"
-              />
-              <div
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-                onClick={() => document.getElementById("pdf-input")?.click()}
-                className="border-2 border-dashed border-border rounded-xl p-10 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/5 transition-all"
-              >
-                <Upload className="w-10 h-10 mx-auto text-muted-foreground mb-3" />
-                <p className="text-sm font-medium text-foreground">
-                  Arraste e solte os PDFs aqui
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  ou clique para selecionar vários
-                </p>
-                {files.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-2 justify-center">
-                    {files.map((f, i) => (
-                      <span
-                        key={i}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-sm"
-                      >
-                        <FileText className="w-4 h-4 shrink-0" />
-                        {f.name}
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            removeFile(i);
-                          }}
-                          className="ml-0.5 hover:bg-primary/20 rounded p-0.5"
-                          aria-label="Remover arquivo"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
-
-            <Button
-              onClick={handleProcess}
-              disabled={!files.length || processingIndex !== null}
-              size="lg"
-              className="w-full"
-            >
-              {processingIndex !== null ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processando {processingIndex + 1} de {files.length}…
-                </>
-              ) : (
-                `Extrair e gerar resumo e cards${files.length > 1 ? ` (${files.length} PDFs)` : ""}`
-              )}
-            </Button>
+            <UploadSourcesForm
+              pdfFiles={pdfFiles}
+              imageFiles={imageFiles}
+              mergeAllIntoOne={mergeAllIntoOne}
+              onPdfFilesChange={setPdfFiles}
+              onImageFilesChange={setImageFiles}
+              onMergeAllIntoOneChange={setMergeAllIntoOne}
+              onResultsClear={() => {
+                setResults([]);
+                setError(null);
+              }}
+              error={error}
+              topicCount={topicCount}
+              processingIndex={processingIndex}
+              onProcess={handleProcess}
+            />
           </div>
 
-          {results.length === files.length && results.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mt-10 space-y-6 p-6 rounded-xl border bg-card"
+          {results.length > 0 && (
+            <ProcessedResultsList
+              ref={resultsSectionRef}
+              results={results}
+              pdfFiles={pdfFiles}
+              imageFiles={imageFiles}
+              onRemoveResult={removeResult}
             >
-              <div className="flex items-center gap-2 text-success">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">
-                  {results.length} {results.length === 1 ? "tópico gerado" : "tópicos gerados"}
-                </span>
-              </div>
-
-              <div className="space-y-6 max-h-[60vh] overflow-y-auto">
-                {results.map((result, idx) => (
-                  <div key={idx} className="p-4 rounded-lg border bg-background/50 space-y-3">
-                    <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-                      {files[idx]?.name ?? `PDF ${idx + 1}`}
-                    </h3>
-                    <p className="text-foreground leading-relaxed text-sm line-clamp-3">
-                      {result.resumo}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {result.cards.length} card(s)
-                    </p>
-                  </div>
-                ))}
-              </div>
-
               <Button
                 onClick={handleSaveProject}
                 disabled={isSaving}
@@ -316,7 +193,7 @@ export default function NewProjectPage() {
                   </>
                 )}
               </Button>
-            </motion.div>
+            </ProcessedResultsList>
           )}
         </motion.div>
       </div>
