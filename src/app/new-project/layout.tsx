@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { AuthGuard } from "@/components/AuthGuard";
 
 export const metadata: Metadata = {
   title: "Novo projeto — MindEase",
@@ -11,5 +10,5 @@ export default function NewProjectLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthGuard>{children}</AuthGuard>;
+  return children;
 }
