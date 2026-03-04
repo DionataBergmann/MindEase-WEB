@@ -21,7 +21,7 @@ function formatLastAccess(ts: Timestamp | undefined): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Hoje";
+  if (diffDays <= 0) return "Hoje";
   if (diffDays === 1) return "Ontem";
   if (diffDays < 7) return `${diffDays} dias atrás`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} semana(s) atrás`;
@@ -331,18 +331,22 @@ export default function ProjectPage() {
                 </p>
               </div>
             </div>
-            <div className="shrink-0" ref={projectMenuRef}>
+            <div className="relative shrink-0" ref={projectMenuRef}>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                onClick={() => setProjectMenuOpen((o) => !o)}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setProjectMenuOpen((o) => !o);
+                }}
               >
                 <MoreVertical className="w-4 h-4" />
               </Button>
               {projectMenuOpen && (
-                <div className="absolute right-0 top-full mt-1 w-44 rounded-lg border bg-card py-1 shadow-lg z-30">
+                <div className="absolute right-0 top-full z-50 mt-1 w-44 rounded-lg border bg-card py-1 shadow-lg">
                   <button
                     type="button"
                     className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted"
