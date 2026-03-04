@@ -20,7 +20,7 @@ function formatLastAccess(ts: Timestamp | undefined): string {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Hoje";
+  if (diffDays <= 0) return "Hoje";
   if (diffDays === 1) return "Ontem";
   if (diffDays < 7) return `${diffDays} dias atrás`;
   if (diffDays < 30) return `${Math.floor(diffDays / 7)} semana(s) atrás`;
@@ -240,53 +240,53 @@ export default function HomePage() {
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/40 to-accent/10 border border-primary/10 p-8 mb-8"
+          className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-secondary/40 to-accent/10 border border-primary/10 p-5 sm:p-8 mb-6 sm:mb-8"
         >
-          <div className="absolute top-3 right-6 text-primary/15 rotate-12">
-            <Leaf className="w-20 h-20" />
+          <div className="absolute top-2 right-4 sm:top-3 sm:right-6 text-primary/15 rotate-12">
+            <Leaf className="w-14 h-14 sm:w-20 sm:h-20" />
           </div>
-          <div className="absolute bottom-2 right-24 text-primary/10 -rotate-45">
-            <Leaf className="w-12 h-12" />
+          <div className="absolute bottom-1 right-16 sm:right-24 text-primary/10 -rotate-45">
+            <Leaf className="w-8 h-8 sm:w-12 sm:h-12" />
           </div>
 
           <div className="relative z-10">
-            <h1 className="font-display text-3xl font-bold text-foreground mb-1">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-foreground mb-1">
               Olá, bom te ver de volta! 🌿
             </h1>
-            <p className="text-muted-foreground text-lg mb-5">
+            <p className="text-muted-foreground text-base sm:text-lg mb-4 sm:mb-5">
               Continue de onde parou nos seus estudos.
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-5 py-3 border border-border/50">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 border border-border/50 min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wide truncate">
                   Projetos
                 </p>
-                <p className="text-2xl font-bold font-display text-foreground">
+                <p className="text-xl sm:text-2xl font-bold font-display text-foreground tabular-nums">
                   {loading ? "—" : projects.length}
                 </p>
               </div>
-              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-5 py-3 border border-border/50">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 border border-border/50 min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wide truncate">
                   Tópicos / PDFs
                 </p>
-                <p className="text-2xl font-bold font-display text-foreground">
+                <p className="text-xl sm:text-2xl font-bold font-display text-foreground tabular-nums">
                   {loading ? "—" : totalTopics}
                 </p>
               </div>
-              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-5 py-3 border border-border/50">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 border border-border/50 min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wide truncate">
                   Tópicos concluídos
                 </p>
-                <p className="text-2xl font-bold font-display text-success">
+                <p className="text-xl sm:text-2xl font-bold font-display text-success tabular-nums">
                   {loading ? "—" : completedTopicCount}
                 </p>
               </div>
-              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-5 py-3 border border-border/50">
-                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">
+              <div className="bg-card/80 backdrop-blur-sm rounded-xl px-3 py-2.5 sm:px-5 sm:py-3 border border-border/50 min-w-0">
+                <p className="text-[10px] sm:text-xs text-muted-foreground font-medium uppercase tracking-wide truncate">
                   Progresso (tópicos)
                 </p>
-                <p className="text-2xl font-bold font-display text-primary">
+                <p className="text-xl sm:text-2xl font-bold font-display text-primary tabular-nums">
                   {loading ? "—" : `${topicProgress}%`}
                 </p>
               </div>
@@ -299,31 +299,33 @@ export default function HomePage() {
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+            className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-5 flex flex-col gap-4"
           >
-            <div className="flex gap-3">
-              <div className="rounded-lg bg-primary/10 p-2 h-fit shrink-0">
-                <Settings className="w-5 h-5 text-primary" />
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex gap-3 min-w-0">
+                <div className="rounded-lg bg-primary/10 p-2 h-fit shrink-0">
+                  <Settings className="w-5 h-5 text-primary" />
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-semibold text-foreground mb-0.5">Personalize sua experiência</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Configure formato de estudo (flashcards, quiz), duração das sessões, tamanho do resumo e outras opções no seu perfil.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="font-semibold text-foreground mb-0.5">Personalize sua experiência</h2>
-                <p className="text-sm text-muted-foreground">
-                  Configure formato de estudo (flashcards, quiz), duração das sessões, tamanho do resumo e outras opções no seu perfil.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button asChild variant="default" size="sm">
-                <Link href="/profile">Ir para Perfil e preferências</Link>
-              </Button>
               <button
                 type="button"
                 onClick={dismissSetupSuggestion}
-                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors shrink-0"
                 aria-label="Dispensar"
               >
                 <X className="w-4 h-4" />
               </button>
+            </div>
+            <div className="flex justify-end">
+              <Button asChild variant="default" size="sm">
+                <Link href="/profile">Ir para Perfil e preferências</Link>
+              </Button>
             </div>
           </motion.div>
         )}
@@ -367,9 +369,9 @@ export default function HomePage() {
           </motion.div>
         )}
 
-        {/* Search + Revisar + New Project */}
-        <div className="flex flex-wrap items-center gap-3 mb-3">
-          <div className="relative flex-1 max-w-md">
+        {/* Search + Revisar + New Project: no mobile, busca em cima e botões um de cada lado */}
+        <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 mb-3">
+          <div className="relative w-full sm:flex-1 sm:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Buscar em projetos, tópicos e resumos..."
@@ -378,20 +380,25 @@ export default function HomePage() {
               className="pl-9"
             />
           </div>
-          {!loading && dueCards.length > 0 && (
-            <Button asChild variant="outline" size="default">
-              <Link href="/review" className="inline-flex items-center gap-2">
-                <Layers className="w-4 h-4" />
-                Revisar cards ({dueCards.length})
+          <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:flex sm:flex-shrink-0">
+            {!loading && dueCards.length > 0 && (
+              <Button asChild variant="outline" size="default" className="min-w-0">
+                <Link href="/review" className="inline-flex items-center justify-center gap-2 w-full">
+                  <Layers className="w-4 h-4 shrink-0" />
+                  <span className="truncate">Revisar cards ({dueCards.length})</span>
+                </Link>
+              </Button>
+            )}
+            <Button
+              asChild
+              className={!loading && dueCards.length > 0 ? "min-w-0" : "col-span-2 sm:col-span-1"}
+            >
+              <Link href="/new-project" className="inline-flex items-center justify-center gap-2 w-full">
+                <Plus className="w-4 h-4 shrink-0" />
+                Novo projeto
               </Link>
             </Button>
-          )}
-          <Button asChild>
-            <Link href="/new-project">
-              <Plus className="w-4 h-4 mr-2" />
-              Novo projeto
-            </Link>
-          </Button>
+          </div>
         </div>
         {allTags.length > 0 && (
           <div className="flex flex-wrap items-center gap-2 mb-6">

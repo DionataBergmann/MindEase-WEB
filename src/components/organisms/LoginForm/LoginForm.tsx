@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, onAuthStateChanged } from "firebase/auth";
 import { BrandLink, Button, Heading, Input, Text } from "@/components/atoms";
 import { getFirebaseAuth } from "@/lib/firebase";
 import loginIllustration from "@/assets/login-illustration.png";
@@ -15,6 +15,23 @@ import { loginSchema, type LoginFormData } from "./loginSchema";
 export function LoginForm() {
   const router = useRouter();
   const [firebaseError, setFirebaseError] = useState<string | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const auth = getFirebaseAuth();
+    if (!auth) {
+      setCheckingAuth(false);
+      return;
+    }
+    const unsub = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.replace("/home");
+        return;
+      }
+      setCheckingAuth(false);
+    });
+    return () => unsub();
+  }, [router]);
 
   const {
     register,
@@ -55,6 +72,14 @@ export function LoginForm() {
         setFirebaseError("Não foi possível entrar. Tente novamente.");
       }
     }
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" aria-hidden />
+      </div>
+    );
   }
 
   return (
