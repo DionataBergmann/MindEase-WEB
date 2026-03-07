@@ -33,8 +33,12 @@ export function FlashcardCarousel({
   const hasNext = cardIndex < cards.length - 1;
   const currentCard = cards[cardIndex] ?? null;
 
-  const slideTransition = reducedMotion ? { duration: 0 } : { type: "spring" as const, stiffness: 320, damping: 34 };
-  const flipTransition = reducedMotion ? { duration: 0 } : { duration: 0.5, ease: "easeInOut" as const };
+  const slideTransition = reducedMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 320, damping: 34 };
+  const flipTransition = reducedMotion
+    ? { duration: 0 }
+    : { duration: 0.5, ease: "easeInOut" as const };
 
   const handlePrev = () => {
     if (!hasPrev) return;
@@ -115,21 +119,11 @@ export function FlashcardCarousel({
         {footerText} · {cardIndex + 1}/{cards.length}
       </p>
       <div className="flex justify-center gap-4 mt-4">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!hasPrev}
-          onClick={handlePrev}
-        >
+        <Button variant="outline" size="sm" disabled={!hasPrev} onClick={handlePrev}>
           <ChevronLeft className="w-4 h-4 mr-1" />
           Anterior
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!hasNext}
-          onClick={handleNext}
-        >
+        <Button variant="outline" size="sm" disabled={!hasNext} onClick={handleNext}>
           Próximo
           <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
@@ -137,4 +131,3 @@ export function FlashcardCarousel({
     </>
   );
 }
-

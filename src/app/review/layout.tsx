@@ -6,8 +6,6 @@ export const metadata: Metadata = {
   description: "Revise seus cards no momento certo.",
 };
 
-export default function ReviewLayout({
-  children,
-}: { children: React.ReactNode }) {
+export default function ReviewLayout({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>;
 }

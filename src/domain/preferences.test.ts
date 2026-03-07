@@ -40,7 +40,10 @@ describe("domain/preferences", () => {
     });
 
     it("retorna flashcards quando formato é flashcards", () => {
-      const prefs: UserPreferences = { ...DEFAULT_USER_PREFERENCES, formatoPreferido: "flashcards" };
+      const prefs: UserPreferences = {
+        ...DEFAULT_USER_PREFERENCES,
+        formatoPreferido: "flashcards",
+      };
       expect(getPreferredStudyTab(prefs)).toBe("flashcards");
     });
   });

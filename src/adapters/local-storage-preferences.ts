@@ -16,9 +16,10 @@ export class LocalStoragePreferencesStorage implements IPreferencesStorage {
       const parsed = JSON.parse(raw) as Partial<UserPreferences>;
       const merged = { ...DEFAULT_USER_PREFERENCES, ...parsed };
       merged.pomodoroWorkMinutes = merged.pomodoroWorkMinutes ?? null;
-      merged.pomodoroBreakMinutes = typeof merged.pomodoroBreakMinutes === "number" && merged.pomodoroBreakMinutes >= 1
-        ? Math.min(30, merged.pomodoroBreakMinutes)
-        : 5;
+      merged.pomodoroBreakMinutes =
+        typeof merged.pomodoroBreakMinutes === "number" && merged.pomodoroBreakMinutes >= 1
+          ? Math.min(30, merged.pomodoroBreakMinutes)
+          : 5;
       return merged;
     } catch {
       return DEFAULT_USER_PREFERENCES;

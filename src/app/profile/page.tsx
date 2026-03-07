@@ -121,7 +121,8 @@ export default function ProfilePage() {
             Perfil e Configurações
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Defina como prefere estudar: formato inicial (flashcards, quiz), duração das sessões, tamanho do resumo, modo foco e mais.
+            Defina como prefere estudar: formato inicial (flashcards, quiz), duração das sessões,
+            tamanho do resumo, modo foco e mais.
           </p>
         </div>
 
@@ -140,11 +141,7 @@ export default function ProfilePage() {
               <label className="text-sm font-medium text-foreground block mb-1">E-mail</label>
               <Input value={email} readOnly className="bg-muted/50" />
             </div>
-            <Button
-              variant="destructive"
-              className="mt-4"
-              onClick={handleSair}
-            >
+            <Button variant="destructive" className="mt-4" onClick={handleSair}>
               <LogOut className="w-4 h-4 mr-2" />
               Sair
             </Button>
@@ -199,7 +196,8 @@ export default function ProfilePage() {
             <div>
               <p className="text-sm font-medium text-foreground mb-2">Tamanho do resumo</p>
               <p className="text-xs text-muted-foreground mb-2">
-                Nas telas de estudo, o resumo de cada tópico pode ser exibido em 3 níveis. Escolha o que você prefere (quando o PDF tiver sido processado com essa opção).
+                Nas telas de estudo, o resumo de cada tópico pode ser exibido em 3 níveis. Escolha o
+                que você prefere (quando o PDF tiver sido processado com essa opção).
               </p>
               <div className="flex flex-wrap gap-2">
                 {NIVEL_RESUMO_OPTIONS.map((opt) => (
@@ -228,7 +226,10 @@ export default function ProfilePage() {
             Modo foco
           </h2>
           <p className="text-sm text-muted-foreground mb-4">
-            Nas telas de estudo, esconde resumo, abas e links. Mostra apenas o formato que você escolheu (ex.: só Quiz ou só Flashcards) e o timer. Recomendado se muitas opções na tela atrapalham o foco. Este toggle define o <strong>padrão</strong> ao abrir; você também pode ativar e desativar direto na tela de estudo.
+            Nas telas de estudo, esconde resumo, abas e links. Mostra apenas o formato que você
+            escolheu (ex.: só Quiz ou só Flashcards) e o timer. Recomendado se muitas opções na tela
+            atrapalham o foco. Este toggle define o <strong>padrão</strong> ao abrir; você também
+            pode ativar e desativar direto na tela de estudo.
           </p>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-foreground">Modo foco como padrão</span>
@@ -262,7 +263,9 @@ export default function ProfilePage() {
                 prefs.modoFocoEsconderMenu ? "bg-primary" : "bg-muted"
               }`}
             >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.modoFocoEsconderMenu ? "translate-x-5" : "translate-x-0"}`} />
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.modoFocoEsconderMenu ? "translate-x-5" : "translate-x-0"}`}
+              />
             </button>
           </div>
         </section>
@@ -274,7 +277,9 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">Aviso antes de ir estudar</p>
-                <p className="text-xs text-muted-foreground">Pergunta &quot;Pronto para continuar?&quot; antes de abrir a tela de estudo</p>
+                <p className="text-xs text-muted-foreground">
+                  Pergunta &quot;Pronto para continuar?&quot; antes de abrir a tela de estudo
+                </p>
               </div>
               <button
                 type="button"
@@ -283,13 +288,17 @@ export default function ProfilePage() {
                 onClick={() => updatePref("avisoTransicao", !prefs.avisoTransicao)}
                 className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${prefs.avisoTransicao ? "bg-primary" : "bg-muted"}`}
               >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.avisoTransicao ? "translate-x-5" : "translate-x-0"}`} />
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.avisoTransicao ? "translate-x-5" : "translate-x-0"}`}
+                />
               </button>
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">Pausas tipo Pomodoro</p>
-                <p className="text-xs text-muted-foreground">Após o timer de sessão, oferece pausa configurável</p>
+                <p className="text-xs text-muted-foreground">
+                  Após o timer de sessão, oferece pausa configurável
+                </p>
               </div>
               <button
                 type="button"
@@ -298,17 +307,23 @@ export default function ProfilePage() {
                 onClick={() => updatePref("pausasPomodoro", !prefs.pausasPomodoro)}
                 className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${prefs.pausasPomodoro ? "bg-primary" : "bg-muted"}`}
               >
-                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.pausasPomodoro ? "translate-x-5" : "translate-x-0"}`} />
+                <span
+                  className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.pausasPomodoro ? "translate-x-5" : "translate-x-0"}`}
+                />
               </button>
             </div>
             <div className="pt-4 mt-4 border-t border-border space-y-4">
               <p className="text-sm font-medium text-foreground">Timer Pomodoro</p>
               <p className="text-xs text-muted-foreground mb-3">
-                Defina a duração do foco (estudo) e da pausa. Se a duração do foco estiver em branco, será usada a duração da sessão (curta/média/longa).
+                Defina a duração do foco (estudo) e da pausa. Se a duração do foco estiver em
+                branco, será usada a duração da sessão (curta/média/longa).
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label htmlFor="pomodoro-work" className="text-xs font-medium text-muted-foreground block mb-1">
+                  <label
+                    htmlFor="pomodoro-work"
+                    className="text-xs font-medium text-muted-foreground block mb-1"
+                  >
                     Duração do foco (min)
                   </label>
                   <Input
@@ -317,7 +332,9 @@ export default function ProfilePage() {
                     min={1}
                     max={120}
                     placeholder="Usar duração da sessão"
-                    value={prefs.pomodoroWorkMinutes != null ? String(prefs.pomodoroWorkMinutes) : ""}
+                    value={
+                      prefs.pomodoroWorkMinutes != null ? String(prefs.pomodoroWorkMinutes) : ""
+                    }
                     onChange={(e) => {
                       const raw = e.target.value.trim();
                       if (raw === "") {
@@ -341,7 +358,10 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="pomodoro-break" className="text-xs font-medium text-muted-foreground block mb-1">
+                  <label
+                    htmlFor="pomodoro-break"
+                    className="text-xs font-medium text-muted-foreground block mb-1"
+                  >
                     Duração da pausa (min)
                   </label>
                   <Input
@@ -442,7 +462,8 @@ export default function ProfilePage() {
             <div>
               <p className="text-sm font-medium text-foreground mb-2">Animações</p>
               <p className="text-xs text-muted-foreground mb-2">
-                Reduzidas: transições e animações quase instantâneas e rolagens sem animação. Recomendado se movimento na tela incomoda ou você prefere menos estímulos visuais.
+                Reduzidas: transições e animações quase instantâneas e rolagens sem animação.
+                Recomendado se movimento na tela incomoda ou você prefere menos estímulos visuais.
               </p>
               <div className="flex gap-2">
                 {ANIMACOES_OPTIONS.map((opt) => (

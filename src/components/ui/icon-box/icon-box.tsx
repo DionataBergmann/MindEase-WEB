@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 
 const ICON_BOX_CLASSES = { root: "icon-box", icon: "icon-box__icon" } as const;
 
-export interface IconBoxPrimitiveProps
-  extends React.HTMLAttributes<HTMLDivElement> {
+export interface IconBoxPrimitiveProps extends React.HTMLAttributes<HTMLDivElement> {
   icon: LucideIcon;
   iconClassName?: string;
 }

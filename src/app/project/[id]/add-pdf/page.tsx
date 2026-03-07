@@ -4,19 +4,18 @@ import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import {
-  Loader2,
-  ArrowLeft,
-  CheckCircle,
-  Save,
-} from "lucide-react";
+import { Loader2, ArrowLeft, CheckCircle, Save } from "lucide-react";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { AppShell } from "@/components/organisms";
 import { UploadSourcesForm, ProcessedResultsList } from "@/components/upload";
 import { Button } from "@/components/atoms";
 import { scrollToElement } from "@/lib/scroll";
 import { useFirebaseGuard } from "@/hooks/useFirebaseGuard";
-import { processSources, getTopicDisplayName, getSingleTopicDisplayName } from "@/lib/content-processing";
+import {
+  processSources,
+  getTopicDisplayName,
+  getSingleTopicDisplayName,
+} from "@/lib/content-processing";
 import type { ProcessContentResponse } from "@/types/process-content";
 import type { Material } from "@/types/project";
 
@@ -40,7 +39,9 @@ export default function AddPdfPage() {
 
   const hasSources = pdfFiles.length > 0 || imageFiles.length > 0;
   const topicCountAddToProject = mergeAllIntoOne
-    ? hasSources ? 1 : 0
+    ? hasSources
+      ? 1
+      : 0
     : pdfFiles.length + imageFiles.length;
 
   const firebaseGuard = useFirebaseGuard(setError, {
@@ -104,9 +105,7 @@ export default function AddPdfPage() {
         setError("Você não tem permissão para editar este projeto.");
         return;
       }
-      let currentMateriais: Material[] = Array.isArray(data.materiais)
-        ? data.materiais
-        : [];
+      let currentMateriais: Material[] = Array.isArray(data.materiais) ? data.materiais : [];
       if (currentMateriais.length === 0 && (data.resumo || (data.cards?.length ?? 0) > 0)) {
         currentMateriais = [
           {
@@ -147,8 +146,13 @@ export default function AddPdfPage() {
         }));
         updatedMateriais = [...currentMateriais, ...newMateriais];
       }
-      const completedCount = updatedMateriais.filter((m) => (m.status ?? "pending") === "completed").length;
-      const progress = updatedMateriais.length === 0 ? 0 : Math.round((completedCount / updatedMateriais.length) * 100);
+      const completedCount = updatedMateriais.filter(
+        (m) => (m.status ?? "pending") === "completed"
+      ).length;
+      const progress =
+        updatedMateriais.length === 0
+          ? 0
+          : Math.round((completedCount / updatedMateriais.length) * 100);
       await updateDoc(projectRef, {
         materiais: updatedMateriais,
         pdfCount: updatedMateriais.length,
@@ -184,7 +188,8 @@ export default function AddPdfPage() {
             {materialId ? "Adicionar material a este tópico" : "Adicionar PDF ao projeto"}
           </h1>
           <p className="text-muted-foreground mb-8">
-            Envie PDFs e/ou fotos de páginas. Abaixo você escolhe se quer um tópico por arquivo ou juntar tudo em um único tópico com resumo e cards.
+            Envie PDFs e/ou fotos de páginas. Abaixo você escolhe se quer um tópico por arquivo ou
+            juntar tudo em um único tópico com resumo e cards.
           </p>
 
           <div className="space-y-6">
@@ -231,13 +236,8 @@ export default function AddPdfPage() {
                 </h3>
                 <ul className="space-y-4">
                   {result.cards.map((card, i) => (
-                    <li
-                      key={i}
-                      className="p-4 rounded-lg border bg-background/50"
-                    >
-                      <h4 className="font-display font-bold text-foreground mb-1">
-                        {card.titulo}
-                      </h4>
+                    <li key={i} className="p-4 rounded-lg border bg-background/50">
+                      <h4 className="font-display font-bold text-foreground mb-1">{card.titulo}</h4>
                       <p className="text-sm text-muted-foreground leading-relaxed">
                         {card.conteudo}
                       </p>
@@ -246,12 +246,7 @@ export default function AddPdfPage() {
                 </ul>
               </div>
 
-              <Button
-                onClick={handleAddToProject}
-                disabled={isSaving}
-                size="lg"
-                className="w-full"
-              >
+              <Button onClick={handleAddToProject} disabled={isSaving} size="lg" className="w-full">
                 {isSaving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -267,19 +262,14 @@ export default function AddPdfPage() {
             </motion.div>
           )}
 
-          {(results.length > 0 && (!isSingleTopic || !result)) && (
+          {results.length > 0 && (!isSingleTopic || !result) && (
             <ProcessedResultsList
               ref={resultsSectionRef}
               results={results}
               pdfFiles={pdfFiles}
               imageFiles={imageFiles}
             >
-              <Button
-                onClick={handleAddToProject}
-                disabled={isSaving}
-                size="lg"
-                className="w-full"
-              >
+              <Button onClick={handleAddToProject} disabled={isSaving} size="lg" className="w-full">
                 {isSaving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

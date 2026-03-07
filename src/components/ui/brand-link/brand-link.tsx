@@ -11,11 +11,7 @@ export interface BrandLinkPrimitiveProps {
   className?: string;
 }
 
-function BrandLinkPrimitive({
-  href = "/",
-  size = "nav",
-  className,
-}: BrandLinkPrimitiveProps) {
+function BrandLinkPrimitive({ href = "/", size = "nav", className }: BrandLinkPrimitiveProps) {
   return (
     <Link href={href} className={cn(BRAND_LINK_SIZES[size], className)}>
       MindEase

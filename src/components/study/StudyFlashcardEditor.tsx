@@ -46,9 +46,7 @@ export function ProjectFlashcardEditor({
   return (
     <div className="space-y-4 mb-8">
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h3 className="font-display font-semibold text-foreground">
-          Editar e criar flashcards
-        </h3>
+        <h3 className="font-display font-semibold text-foreground">Editar e criar flashcards</h3>
         {hasMateriais && (
           <Button
             type="button"
@@ -73,12 +71,8 @@ export function ProjectFlashcardEditor({
             className="rounded-lg border bg-card p-4 flex items-start justify-between gap-2"
           >
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted-foreground mb-0.5">
-                {item.materialName}
-              </p>
-              <p className="font-medium text-foreground truncate">
-                {item.card.titulo}
-              </p>
+              <p className="text-xs text-muted-foreground mb-0.5">{item.materialName}</p>
+              <p className="font-medium text-foreground truncate">{item.card.titulo}</p>
               <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
                 {item.card.conteudo}
               </p>
@@ -129,9 +123,7 @@ export function ProjectFlashcardEditor({
             className="rounded-xl border bg-card p-6 w-full max-w-xl shadow-xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-display font-bold text-lg mb-3">
-              Editar flashcard
-            </h3>
+            <h3 className="font-display font-bold text-lg mb-3">Editar flashcard</h3>
             <label className="text-sm font-medium text-foreground block mb-1">
               Pergunta (frente)
             </label>
@@ -160,9 +152,7 @@ export function ProjectFlashcardEditor({
                 Cancelar
               </Button>
               <Button
-                disabled={
-                  saving || !editTitulo.trim() || !editConteudo.trim()
-                }
+                disabled={saving || !editTitulo.trim() || !editConteudo.trim()}
                 onClick={async () => {
                   if (!editItem) return;
                   await onSaveCard({
@@ -175,13 +165,7 @@ export function ProjectFlashcardEditor({
                   setEditItem(null);
                 }}
               >
-                {saving ? (
-                  <span className="flex items-center gap-2">
-                    Salvando...
-                  </span>
-                ) : (
-                  "Salvar"
-                )}
+                {saving ? <span className="flex items-center gap-2">Salvando...</span> : "Salvar"}
               </Button>
             </div>
           </div>
@@ -198,12 +182,8 @@ export function ProjectFlashcardEditor({
             className="rounded-xl border bg-card p-6 w-full max-w-xl shadow-xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-display font-bold text-lg mb-3">
-              Nova flashcard
-            </h3>
-            <label className="text-sm font-medium text-foreground block mb-1">
-              Tópico
-            </label>
+            <h3 className="font-display font-bold text-lg mb-3">Nova flashcard</h3>
+            <label className="text-sm font-medium text-foreground block mb-1">Tópico</label>
             <select
               value={newMaterialId}
               onChange={(e) => setNewMaterialId(e.target.value)}
@@ -243,12 +223,7 @@ export function ProjectFlashcardEditor({
                 Cancelar
               </Button>
               <Button
-                disabled={
-                  saving ||
-                  !newTitulo.trim() ||
-                  !newConteudo.trim() ||
-                  !newMaterialId
-                }
+                disabled={saving || !newTitulo.trim() || !newConteudo.trim() || !newMaterialId}
                 onClick={async () => {
                   if (!newMaterialId) return;
                   await onSaveCard({
@@ -262,13 +237,7 @@ export function ProjectFlashcardEditor({
                   setNewConteudo("");
                 }}
               >
-                {saving ? (
-                  <span className="flex items-center gap-2">
-                    Salvando...
-                  </span>
-                ) : (
-                  "Salvar"
-                )}
+                {saving ? <span className="flex items-center gap-2">Salvando...</span> : "Salvar"}
               </Button>
             </div>
           </div>
@@ -285,12 +254,9 @@ export function ProjectFlashcardEditor({
             className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-display font-bold text-lg mb-2">
-              Excluir esta flashcard?
-            </h3>
+            <h3 className="font-display font-bold text-lg mb-2">Excluir esta flashcard?</h3>
             <p className="text-muted-foreground text-sm mb-4">
-              A pergunta e a resposta serão removidas. Esta ação não pode ser
-              desfeita.
+              A pergunta e a resposta serão removidas. Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-2 justify-end">
               <Button
@@ -367,9 +333,7 @@ export function MaterialFlashcardEditor({
   return (
     <div className="space-y-4 mb-8">
       <div className="flex items-center justify-between">
-        <h3 className="font-display font-semibold text-foreground">
-          Editar e criar flashcards
-        </h3>
+        <h3 className="font-display font-semibold text-foreground">Editar e criar flashcards</h3>
         <Button type="button" size="sm" onClick={openNew}>
           <Plus className="w-4 h-4 mr-2" />
           Nova flashcard
@@ -382,12 +346,8 @@ export function MaterialFlashcardEditor({
             className="rounded-lg border bg-card p-4 flex items-start justify-between gap-2"
           >
             <div className="min-w-0 flex-1">
-              <p className="font-medium text-foreground truncate">
-                {c.titulo}
-              </p>
-              <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">
-                {c.conteudo}
-              </p>
+              <p className="font-medium text-foreground truncate">{c.titulo}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-0.5">{c.conteudo}</p>
             </div>
             <div className="flex gap-1 shrink-0">
               <Button
@@ -415,8 +375,7 @@ export function MaterialFlashcardEditor({
       </div>
       {cards.length === 0 && (
         <p className="text-muted-foreground text-sm">
-          Nenhuma flashcard ainda. Clique em &quot;Nova flashcard&quot; para
-          criar.
+          Nenhuma flashcard ainda. Clique em &quot;Nova flashcard&quot; para criar.
         </p>
       )}
 
@@ -452,18 +411,11 @@ export function MaterialFlashcardEditor({
               className="min-h-[160px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-4 resize-y"
             />
             <div className="flex gap-2 justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={saving}
-                onClick={closeEditor}
-              >
+              <Button type="button" variant="outline" disabled={saving} onClick={closeEditor}>
                 Cancelar
               </Button>
               <Button
-                disabled={
-                  saving || !editTitulo.trim() || !editConteudo.trim()
-                }
+                disabled={saving || !editTitulo.trim() || !editConteudo.trim()}
                 onClick={async () => {
                   if (isNew) {
                     await onSaveCard({
@@ -482,13 +434,7 @@ export function MaterialFlashcardEditor({
                   closeEditor();
                 }}
               >
-                {saving ? (
-                  <span className="flex items-center gap-2">
-                    Salvando...
-                  </span>
-                ) : (
-                  "Salvar"
-                )}
+                {saving ? <span className="flex items-center gap-2">Salvando...</span> : "Salvar"}
               </Button>
             </div>
           </div>
@@ -505,12 +451,9 @@ export function MaterialFlashcardEditor({
             className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="font-display font-bold text-lg mb-2">
-              Excluir esta flashcard?
-            </h3>
+            <h3 className="font-display font-bold text-lg mb-2">Excluir esta flashcard?</h3>
             <p className="text-muted-foreground text-sm mb-4">
-              A pergunta e a resposta serão removidas. Esta ação não pode ser
-              desfeita.
+              A pergunta e a resposta serão removidas. Esta ação não pode ser desfeita.
             </p>
             <div className="flex gap-2 justify-end">
               <Button
@@ -539,4 +482,3 @@ export function MaterialFlashcardEditor({
     </div>
   );
 }
-

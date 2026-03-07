@@ -32,8 +32,7 @@ async function normalizeImageDataUrl(dataUrl: string): Promise<string> {
   if (!DATA_URL_PREFIX.test(dataUrl)) return dataUrl;
   const base64 = dataUrl.replace(DATA_URL_PREFIX, "");
   const inputBuffer = Buffer.from(base64, "base64");
-  const isHeic =
-    HEIC_HEIF_PREFIX.test(dataUrl) || isHeicBuffer(inputBuffer);
+  const isHeic = HEIC_HEIF_PREFIX.test(dataUrl) || isHeicBuffer(inputBuffer);
   if (!isHeic) return dataUrl;
   try {
     const convert = (await import("heic-convert")).default;
@@ -46,17 +45,16 @@ async function normalizeImageDataUrl(dataUrl: string): Promise<string> {
     return `data:image/jpeg;base64,${outBase64}`;
   } catch (err) {
     console.error("HEIC conversion error:", err);
-    throw new Error("Não foi possível converter a foto (formato HEIC). Tente enviar em JPEG ou PNG.");
+    throw new Error(
+      "Não foi possível converter a foto (formato HEIC). Tente enviar em JPEG ou PNG."
+    );
   }
 }
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "OPENAI_API_KEY não configurada." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "OPENAI_API_KEY não configurada." }, { status: 500 });
   }
 
   let body: { text?: string; image?: string; images?: string[] };
@@ -75,9 +73,11 @@ export async function POST(request: NextRequest) {
     typeof u === "string" &&
     u.startsWith("data:") &&
     (u.startsWith("data:image/") || u.startsWith("data:application/octet-stream;base64,"));
-  const imageList = Array.isArray(body.images) ? body.images.filter((u): u is string => isImageDataUrl(u)) : [];
+  const imageList = Array.isArray(body.images)
+    ? body.images.filter((u): u is string => isImageDataUrl(u))
+    : [];
   let imageUrls: string[] =
-    imageList.length > 0 ? imageList : (isImageDataUrl(singleImage) ? [singleImage] : []);
+    imageList.length > 0 ? imageList : isImageDataUrl(singleImage) ? [singleImage] : [];
   // Converter HEIC (iPhone) para JPEG no servidor — a API Vision não aceita HEIC
   if (imageUrls.length > 0) {
     imageUrls = await Promise.all(imageUrls.map(normalizeImageDataUrl));
@@ -94,7 +94,9 @@ export async function POST(request: NextRequest) {
 
   const openai = new OpenAI({ apiKey });
 
-  type ContentPart = { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
+  type ContentPart =
+    | { type: "text"; text: string }
+    | { type: "image_url"; image_url: { url: string } };
 
   const textInstruction = hasImages
     ? imageUrls.length > 1
@@ -102,7 +104,9 @@ export async function POST(request: NextRequest) {
       : "Analisa esta imagem (foto de página de livro ou documento) e gera o JSON com resumos e cards conforme as instruções do sistema."
     : "";
   const textBlock = hasText
-    ? (textInstruction ? `Texto extraído de PDFs:\n\n${text.slice(0, 10000)}\n\n${textInstruction}` : text.slice(0, 12000))
+    ? textInstruction
+      ? `Texto extraído de PDFs:\n\n${text.slice(0, 10000)}\n\n${textInstruction}`
+      : text.slice(0, 12000)
     : textInstruction;
   const userContent: ContentPart[] = hasImages
     ? [
@@ -123,10 +127,7 @@ export async function POST(request: NextRequest) {
 
     const raw = completion.choices[0]?.message?.content;
     if (!raw) {
-      return NextResponse.json(
-        { error: "A IA não retornou conteúdo." },
-        { status: 502 }
-      );
+      return NextResponse.json({ error: "A IA não retornou conteúdo." }, { status: 502 });
     }
 
     const parsed = JSON.parse(raw) as ProcessContentResponse;
@@ -141,15 +142,13 @@ export async function POST(request: NextRequest) {
           typeof c.conteudo === "string"
       )
     ) {
-      return NextResponse.json(
-        { error: "Resposta da IA em formato inesperado." },
-        { status: 502 }
-      );
+      return NextResponse.json({ error: "Resposta da IA em formato inesperado." }, { status: 502 });
     }
     // Normalize: ensure at least resumo exists; optional resumoBreve/Medio/Completo
     const resumoBreve = typeof parsed.resumoBreve === "string" ? parsed.resumoBreve : undefined;
     const resumoMedio = typeof parsed.resumoMedio === "string" ? parsed.resumoMedio : undefined;
-    const resumoCompleto = typeof parsed.resumoCompleto === "string" ? parsed.resumoCompleto : undefined;
+    const resumoCompleto =
+      typeof parsed.resumoCompleto === "string" ? parsed.resumoCompleto : undefined;
     const out: ProcessContentResponse = {
       resumo: parsed.resumo,
       cards: parsed.cards,
@@ -162,9 +161,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     console.error("OpenAI error:", err);
     const message = err instanceof Error ? err.message : "Erro ao processar com a IA.";
-    return NextResponse.json(
-      { error: message },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: message }, { status: 502 });
   }
 }

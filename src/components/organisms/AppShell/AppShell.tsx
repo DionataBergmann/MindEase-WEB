@@ -61,11 +61,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1" aria-label="Navegação principal">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={linkClass(item.href)}
-              >
+              <Link key={item.href} href={item.href} className={linkClass(item.href)}>
                 <item.icon className="w-4 h-4 shrink-0" />
                 {item.label}
               </Link>
@@ -103,7 +99,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8" role="main">{children}</main>
+      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8" role="main">
+        {children}
+      </main>
     </div>
   );
 }

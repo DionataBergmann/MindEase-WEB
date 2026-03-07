@@ -23,9 +23,9 @@ export const CardTitle = forwardRef<HTMLHeadingElement, CardTitleProps>((props, 
 ));
 CardTitle.displayName = "CardTitle";
 
-export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>((props, ref) => (
-  <UI.CardDescription ref={ref} {...props} />
-));
+export const CardDescription = forwardRef<HTMLParagraphElement, CardDescriptionProps>(
+  (props, ref) => <UI.CardDescription ref={ref} {...props} />
+);
 CardDescription.displayName = "CardDescription";
 
 export const CardContent = forwardRef<HTMLDivElement, CardContentProps>((props, ref) => (

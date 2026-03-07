@@ -22,7 +22,13 @@ function formatTime(totalSeconds: number): string {
   return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-export function StudyTimer({ initialMinutes, onComplete, editable, onMinutesChange, className }: StudyTimerProps) {
+export function StudyTimer({
+  initialMinutes,
+  onComplete,
+  editable,
+  onMinutesChange,
+  className,
+}: StudyTimerProps) {
   const [secondsRemaining, setSecondsRemaining] = useState(initialMinutes * 60);
   const [isRunning, setIsRunning] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
@@ -139,7 +145,10 @@ export function StudyTimer({ initialMinutes, onComplete, editable, onMinutesChan
             aria-modal="true"
             aria-labelledby="timer-edit-title"
           >
-            <h3 id="timer-edit-title" className="font-display font-bold text-lg text-foreground mb-3">
+            <h3
+              id="timer-edit-title"
+              className="font-display font-bold text-lg text-foreground mb-3"
+            >
               Editar duração do timer
             </h3>
             <p className="text-sm text-muted-foreground mb-3">

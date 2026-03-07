@@ -6,10 +6,6 @@ export const metadata: Metadata = {
   description: "Resumo e tópicos do projeto de estudo.",
 };
 
-export default function ProjectLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ProjectLayout({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>;
 }

@@ -19,8 +19,8 @@ export function HeroSection() {
             Estudo sem <span className="text-primary">sobrecarga</span>
           </Heading>
           <Text variant="lead" className="mt-6">
-            Organize seus materiais, estude no seu ritmo e mantenha o foco.
-            Pensado para quem precisa de clareza e calma ao aprender.
+            Organize seus materiais, estude no seu ritmo e mantenha o foco. Pensado para quem
+            precisa de clareza e calma ao aprender.
           </Text>
           <div className="mt-8 flex gap-4">
             <Button size="lg" asChild>

@@ -6,8 +6,6 @@ export const metadata: Metadata = {
   description: "Configurações e preferências da sua conta.",
 };
 
-export default function ProfileLayout({
-  children,
-}: { children: React.ReactNode }) {
+export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   return <AuthGuard>{children}</AuthGuard>;
 }

@@ -13,7 +13,17 @@ import {
 } from "@/domain/preferences";
 import { localStoragePreferencesStorage } from "@/adapters/local-storage-preferences";
 
-export type { FormatoPreferido, DuracaoSessao, TamanhoFonte, Contraste, Espacamento, Animacoes, NivelResumo, UserPreferences, StudyTab } from "@/domain/preferences";
+export type {
+  FormatoPreferido,
+  DuracaoSessao,
+  TamanhoFonte,
+  Contraste,
+  Espacamento,
+  Animacoes,
+  NivelResumo,
+  UserPreferences,
+  StudyTab,
+} from "@/domain/preferences";
 
 export function getPreferences(): UserPreferences {
   return localStoragePreferencesStorage.get();

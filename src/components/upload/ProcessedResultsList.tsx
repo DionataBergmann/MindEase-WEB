@@ -15,10 +15,7 @@ export type ProcessedResultsListProps = {
 };
 
 export const ProcessedResultsList = forwardRef<HTMLDivElement, ProcessedResultsListProps>(
-  function ProcessedResultsList(
-    { results, pdfFiles, imageFiles, onRemoveResult, children },
-    ref
-  ) {
+  function ProcessedResultsList({ results, pdfFiles, imageFiles, onRemoveResult, children }, ref) {
     return (
       <motion.div
         ref={ref}
@@ -35,10 +32,7 @@ export const ProcessedResultsList = forwardRef<HTMLDivElement, ProcessedResultsL
 
         <div className="space-y-6 max-h-[60vh] overflow-y-auto">
           {results.map((result, idx) => (
-            <div
-              key={idx}
-              className="relative p-4 rounded-lg border bg-background/50 space-y-3"
-            >
+            <div key={idx} className="relative p-4 rounded-lg border bg-background/50 space-y-3">
               <div className="flex items-start justify-between gap-2">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                   {getTopicDisplayName(idx, pdfFiles, imageFiles)}
@@ -57,9 +51,7 @@ export const ProcessedResultsList = forwardRef<HTMLDivElement, ProcessedResultsL
               <p className="text-foreground leading-relaxed text-sm line-clamp-3">
                 {result.resumo}
               </p>
-              <p className="text-xs text-muted-foreground">
-                {result.cards.length} card(s)
-              </p>
+              <p className="text-xs text-muted-foreground">{result.cards.length} card(s)</p>
             </div>
           ))}
         </div>

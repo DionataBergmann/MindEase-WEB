@@ -66,7 +66,8 @@ export function getDisplayResumo(
   material: { resumo: string; resumoBreve?: string; resumoMedio?: string; resumoCompleto?: string },
   nivel: NivelResumo
 ): string {
-  if (nivel === "completo" && material.resumoCompleto?.trim()) return material.resumoCompleto.trim();
+  if (nivel === "completo" && material.resumoCompleto?.trim())
+    return material.resumoCompleto.trim();
   if (nivel === "medio" && material.resumoMedio?.trim()) return material.resumoMedio.trim();
   if (nivel === "breve" && material.resumoBreve?.trim()) return material.resumoBreve.trim();
   return material.resumo?.trim() ?? "";

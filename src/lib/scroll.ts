@@ -10,10 +10,14 @@ function easeOutCubic(t: number): number {
  * - Reduzidas (perfil) ou prefers-reduced-motion: scroll instantâneo (previsível, menos estímulo).
  * - Normal: scroll suave com duração maior e easing.
  */
-export function scrollToElement(element: HTMLElement, options?: { block?: ScrollLogicalPosition; durationMs?: number }): void {
+export function scrollToElement(
+  element: HTMLElement,
+  options?: { block?: ScrollLogicalPosition; durationMs?: number }
+): void {
   const { block = "start", durationMs = 2000 } = options ?? {};
   const prefsReduced = getPreferences().animacoes === "reduzidas";
-  const systemReduced = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const systemReduced =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const reducedMotion = prefsReduced || systemReduced;
 
   if (reducedMotion) {

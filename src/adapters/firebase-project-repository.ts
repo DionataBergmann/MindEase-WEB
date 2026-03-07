@@ -121,7 +121,9 @@ export class FirebaseProjectRepository implements IProjectRepository {
     const unsub = onSnapshot(
       q,
       (snap) => {
-        const list = snap.docs.map((d) => mapDocToProject(d.id, d.data() as Record<string, unknown>));
+        const list = snap.docs.map((d) =>
+          mapDocToProject(d.id, d.data() as Record<string, unknown>)
+        );
         callback(list);
       },
       (err) => console.error("Firestore snapshot error:", err)

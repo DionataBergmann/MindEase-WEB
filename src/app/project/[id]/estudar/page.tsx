@@ -3,13 +3,29 @@
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Brain, Clock, Loader2, Layers, MessageCircle, HelpCircle, FileQuestion, Pencil } from "lucide-react";
+import {
+  ArrowLeft,
+  Brain,
+  Clock,
+  Loader2,
+  Layers,
+  MessageCircle,
+  HelpCircle,
+  FileQuestion,
+  Pencil,
+} from "lucide-react";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { AppShell } from "@/components/organisms";
 import { Button, Input } from "@/components/atoms";
 import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
-import { getPreferredStudyTab, getSessionDuration, getPreferences, setPreferences, getDisplayResumo } from "@/lib/preferences";
+import {
+  getPreferredStudyTab,
+  getSessionDuration,
+  getPreferences,
+  setPreferences,
+  getDisplayResumo,
+} from "@/lib/preferences";
 import { scrollToElement } from "@/lib/scroll";
 import { StudyTimer } from "@/components/molecules";
 import { FlashcardCarousel } from "@/components/study/FlashcardCarousel";
@@ -29,7 +45,10 @@ function getAllCards(project: Project): ProjectCard[] {
 }
 
 type ResumoBlock = { materialId: string; nomeArquivo: string; resumo: string };
-function getResumosWithMaterial(project: Project, nivelResumo: "breve" | "medio" | "completo"): ResumoBlock[] {
+function getResumosWithMaterial(
+  project: Project,
+  nivelResumo: "breve" | "medio" | "completo"
+): ResumoBlock[] {
   if (project.materiais && project.materiais.length > 0) {
     return project.materiais
       .filter((m) => m.resumo || m.resumoBreve || m.resumoMedio || m.resumoCompleto)
@@ -46,7 +65,12 @@ function getResumosWithMaterial(project: Project, nivelResumo: "breve" | "medio"
   return [];
 }
 
-type CardWithSource = { materialId: string; materialName: string; card: ProjectCard; indexInMaterial: number };
+type CardWithSource = {
+  materialId: string;
+  materialName: string;
+  card: ProjectCard;
+  indexInMaterial: number;
+};
 function getCardsWithSource(project: Project): CardWithSource[] {
   if (project.materiais && project.materiais.length > 0) {
     return project.materiais.flatMap((m) =>
@@ -77,10 +101,17 @@ export default function EstudarPage() {
   const [notFound, setNotFound] = useState(false);
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [activeTab, setActiveTab] = useState<"flashcards" | "quiz" | "chat" | "minhas_questoes">(() => getPreferredStudyTab());
+  const [activeTab, setActiveTab] = useState<"flashcards" | "quiz" | "chat" | "minhas_questoes">(
+    () => getPreferredStudyTab()
+  );
   const [showSessionReminder, setShowSessionReminder] = useState(false);
-  const [modoFoco, setModoFoco] = useState(() => (typeof window !== "undefined" ? getPreferences().modoFoco : false));
-  const [pomodoroBreak, setPomodoroBreak] = useState<{ active: boolean; secondsLeft: number }>({ active: false, secondsLeft: 0 });
+  const [modoFoco, setModoFoco] = useState(() =>
+    typeof window !== "undefined" ? getPreferences().modoFoco : false
+  );
+  const [pomodoroBreak, setPomodoroBreak] = useState<{ active: boolean; secondsLeft: number }>({
+    active: false,
+    secondsLeft: 0,
+  });
   const [showTimerCompleteModal, setShowTimerCompleteModal] = useState(false);
   const [sessionMinutesOverride, setSessionMinutesOverride] = useState<number | null>(null);
   const tabContentRef = useRef<HTMLDivElement>(null);
@@ -143,9 +174,20 @@ export default function EstudarPage() {
     if (!id || !project || !editResumoMaterialId) return;
     const db = getFirestoreDb();
     if (!db) return;
-    const materiais = project.materiais ?? (project.resumo ? [{ id: "legacy", nomeArquivo: "PDF", resumo: project.resumo, cards: project.cards ?? [] }] : []);
+    const materiais =
+      project.materiais ??
+      (project.resumo
+        ? [{ id: "legacy", nomeArquivo: "PDF", resumo: project.resumo, cards: project.cards ?? [] }]
+        : []);
     const nivel = getPreferences().nivelResumo;
-    const field = nivel === "breve" ? "resumoBreve" : nivel === "medio" ? "resumoMedio" : nivel === "completo" ? "resumoCompleto" : "resumo";
+    const field =
+      nivel === "breve"
+        ? "resumoBreve"
+        : nivel === "medio"
+          ? "resumoMedio"
+          : nivel === "completo"
+            ? "resumoCompleto"
+            : "resumo";
     setSaving(true);
     try {
       const updated = materiais.map((m) =>
@@ -172,7 +214,18 @@ export default function EstudarPage() {
     if (!id || !project) return;
     const db = getFirestoreDb();
     if (!db) return;
-    const materiais = project.materiais ?? (project.resumo ? [{ id: "legacy", nomeArquivo: "PDF", resumo: project.resumo ?? "", cards: project.cards ?? [] }] : []);
+    const materiais =
+      project.materiais ??
+      (project.resumo
+        ? [
+            {
+              id: "legacy",
+              nomeArquivo: "PDF",
+              resumo: project.resumo ?? "",
+              cards: project.cards ?? [],
+            },
+          ]
+        : []);
     setSaving(true);
     try {
       let updated: Material[];
@@ -182,16 +235,12 @@ export default function EstudarPage() {
         const newCards = (mat.cards ?? []).map((c, i) =>
           i === opts.indexInMaterial ? { titulo: opts.titulo, conteudo: opts.conteudo } : c
         );
-        updated = materiais.map((m) =>
-          m.id === opts.materialId ? { ...m, cards: newCards } : m
-        );
+        updated = materiais.map((m) => (m.id === opts.materialId ? { ...m, cards: newCards } : m));
       } else if (opts.mode === "new") {
         const mat = materiais.find((m) => m.id === opts.materialId);
         if (!mat) return;
         const newCards = [...(mat.cards ?? []), { titulo: opts.titulo, conteudo: opts.conteudo }];
-        updated = materiais.map((m) =>
-          m.id === opts.materialId ? { ...m, cards: newCards } : m
-        );
+        updated = materiais.map((m) => (m.id === opts.materialId ? { ...m, cards: newCards } : m));
       } else return;
       await updateDoc(doc(db, "projects", id), {
         materiais: updated,
@@ -207,7 +256,18 @@ export default function EstudarPage() {
     if (!id || !project) return;
     const db = getFirestoreDb();
     if (!db) return;
-    const materiais = project.materiais ?? (project.resumo ? [{ id: "legacy", nomeArquivo: "PDF", resumo: project.resumo ?? "", cards: project.cards ?? [] }] : []);
+    const materiais =
+      project.materiais ??
+      (project.resumo
+        ? [
+            {
+              id: "legacy",
+              nomeArquivo: "PDF",
+              resumo: project.resumo ?? "",
+              cards: project.cards ?? [],
+            },
+          ]
+        : []);
     const mat = materiais.find((m) => m.id === item.materialId);
     if (!mat) return;
     const newCards = (mat.cards ?? []).filter((_, i) => i !== item.indexInMaterial);
@@ -229,7 +289,13 @@ export default function EstudarPage() {
   const cards = project ? getAllCards(project) : [];
 
   useEffect(() => {
-    if ((activeTab === "flashcards" || activeTab === "quiz" || activeTab === "chat" || activeTab === "minhas_questoes") && tabContentRef.current) {
+    if (
+      (activeTab === "flashcards" ||
+        activeTab === "quiz" ||
+        activeTab === "chat" ||
+        activeTab === "minhas_questoes") &&
+      tabContentRef.current
+    ) {
       scrollToElement(tabContentRef.current, { block: "start" });
     }
   }, [activeTab]);
@@ -249,7 +315,9 @@ export default function EstudarPage() {
   useEffect(() => {
     if (!pomodoroBreak.active || pomodoroBreak.secondsLeft <= 0) return;
     const t = setInterval(() => {
-      setPomodoroBreak((p) => (p.secondsLeft <= 1 ? { ...p, secondsLeft: 0 } : { ...p, secondsLeft: p.secondsLeft - 1 }));
+      setPomodoroBreak((p) =>
+        p.secondsLeft <= 1 ? { ...p, secondsLeft: 0 } : { ...p, secondsLeft: p.secondsLeft - 1 }
+      );
     }, 1000);
     return () => clearInterval(t);
   }, [pomodoroBreak.active, pomodoroBreak.secondsLeft]);
@@ -286,14 +354,32 @@ export default function EstudarPage() {
   const cardsWithSource = getCardsWithSource(project);
   const currentCard = cards[cardIndex] ?? null;
   const totalMin = Math.max(5, cards.length * 3);
-  const materiais = project.materiais ?? (project.resumo || (project.cards?.length ?? 0) > 0 ? [{ id: "legacy", nomeArquivo: "PDF", resumo: project.resumo ?? "", cards: project.cards ?? [] }] : []);
+  const materiais =
+    project.materiais ??
+    (project.resumo || (project.cards?.length ?? 0) > 0
+      ? [
+          {
+            id: "legacy",
+            nomeArquivo: "PDF",
+            resumo: project.resumo ?? "",
+            cards: project.cards ?? [],
+          },
+        ]
+      : []);
   const sessionDuration = getSessionDuration();
-  const workMinutesFromPref = typeof window !== "undefined" ? getPreferences().pomodoroWorkMinutes : null;
+  const workMinutesFromPref =
+    typeof window !== "undefined" ? getPreferences().pomodoroWorkMinutes : null;
   const workMinutesBase = workMinutesFromPref ?? sessionDuration.minutes;
   const effectiveMinutes = Math.min(workMinutesBase, totalMin);
   const sessionMinutes = sessionMinutesOverride ?? effectiveMinutes;
-  const effectiveLabel = effectiveMinutes < workMinutesBase ? `${effectiveMinutes} min` : (workMinutesFromPref != null ? `${workMinutesBase} min` : sessionDuration.label);
-  const pomodoroBreakMinutes = typeof window !== "undefined" ? getPreferences().pomodoroBreakMinutes : 5;
+  const effectiveLabel =
+    effectiveMinutes < workMinutesBase
+      ? `${effectiveMinutes} min`
+      : workMinutesFromPref != null
+        ? `${workMinutesBase} min`
+        : sessionDuration.label;
+  const pomodoroBreakMinutes =
+    typeof window !== "undefined" ? getPreferences().pomodoroBreakMinutes : 5;
 
   const enterModoFoco = () => {
     setPreferences({ modoFoco: true });
@@ -304,9 +390,12 @@ export default function EstudarPage() {
     setModoFoco(false);
   };
 
-  const hideMenu = modoFoco && typeof window !== "undefined" && getPreferences().modoFocoEsconderMenu;
+  const hideMenu =
+    modoFoco && typeof window !== "undefined" && getPreferences().modoFocoEsconderMenu;
   const Wrapper = hideMenu
-    ? ({ children }: { children: React.ReactNode }) => <div className="min-h-screen bg-background pt-6 pb-8 px-4">{children}</div>
+    ? ({ children }: { children: React.ReactNode }) => (
+        <div className="min-h-screen bg-background pt-6 pb-8 px-4">{children}</div>
+      )
     : AppShell;
 
   return (
@@ -322,13 +411,17 @@ export default function EstudarPage() {
           </Link>
         )}
 
-        <div className={`mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${modoFoco ? "mt-4" : ""}`}>
+        <div
+          className={`mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${modoFoco ? "mt-4" : ""}`}
+        >
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">
               Estudar: {project.title}
             </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-sm text-muted-foreground mt-0.5">
-              <span>~{totalMin} min · {cards.length} card{cards.length !== 1 ? "s" : ""}</span>
+              <span>
+                ~{totalMin} min · {cards.length} card{cards.length !== 1 ? "s" : ""}
+              </span>
               {!modoFoco && (
                 <span className="flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" />
@@ -358,7 +451,12 @@ export default function EstudarPage() {
                 Sair do modo foco
               </Button>
             ) : (
-              <Button variant="outline" size="sm" onClick={enterModoFoco} className="h-9 gap-1 px-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={enterModoFoco}
+                className="h-9 gap-1 px-3"
+              >
                 <Brain className="w-3.5 h-3.5" />
                 Modo foco
               </Button>
@@ -380,16 +478,26 @@ export default function EstudarPage() {
               </h3>
               {pomodoroBreak.secondsLeft > 0 ? (
                 <>
-                  <p className="text-sm text-muted-foreground mb-3">Pausa de {pomodoroBreakMinutes} min — descanse um pouco.</p>
-                  <p className="font-mono text-4xl font-semibold text-foreground tabular-nums">
-                    {String(Math.floor(pomodoroBreak.secondsLeft / 60)).padStart(2, "0")}:{String(pomodoroBreak.secondsLeft % 60).padStart(2, "0")}
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Pausa de {pomodoroBreakMinutes} min — descanse um pouco.
                   </p>
-                  <p className="text-xs text-muted-foreground mt-4">Aguarde o fim da pausa para voltar ao estudo.</p>
+                  <p className="font-mono text-4xl font-semibold text-foreground tabular-nums">
+                    {String(Math.floor(pomodoroBreak.secondsLeft / 60)).padStart(2, "0")}:
+                    {String(pomodoroBreak.secondsLeft % 60).padStart(2, "0")}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Aguarde o fim da pausa para voltar ao estudo.
+                  </p>
                 </>
               ) : (
                 <>
                   <p className="text-sm font-medium text-foreground mb-4">Pausa concluída.</p>
-                  <Button onClick={() => { setPomodoroBreak({ active: false, secondsLeft: 0 }); setShowSessionReminder(true); }}>
+                  <Button
+                    onClick={() => {
+                      setPomodoroBreak({ active: false, secondsLeft: 0 });
+                      setShowSessionReminder(true);
+                    }}
+                  >
                     Voltar ao estudo
                   </Button>
                 </>
@@ -410,7 +518,10 @@ export default function EstudarPage() {
               aria-modal="true"
               aria-labelledby="timer-complete-title"
             >
-              <h3 id="timer-complete-title" className="font-display font-bold text-lg text-foreground mb-2">
+              <h3
+                id="timer-complete-title"
+                className="font-display font-bold text-lg text-foreground mb-2"
+              >
                 Sessão concluída
               </h3>
               <p className="text-sm text-muted-foreground mb-4">
@@ -462,7 +573,9 @@ export default function EstudarPage() {
             {resumosWithMaterial.map((block) => (
               <div key={block.materialId} className="relative group">
                 <div className="flex items-center justify-between gap-2 mb-1">
-                  <span className="text-xs font-medium text-muted-foreground">{block.nomeArquivo}</span>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {block.nomeArquivo}
+                  </span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -486,110 +599,123 @@ export default function EstudarPage() {
 
         {/* Tabs: Flashcards | Quiz | Chat IA | Minhas questões - ocultas no modo foco */}
         {!modoFoco && (
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-muted/50 mb-6 md:flex md:flex-row">
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "flashcards" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("flashcards")}
-          >
-            <Layers className="w-4 h-4 shrink-0" />
-            <span className="md:hidden">Cards</span>
-            <span className="hidden md:inline">Flashcards</span>
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "quiz" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("quiz")}
-          >
-            <HelpCircle className="w-4 h-4 shrink-0" />
-            Quiz
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "chat" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("chat")}
-          >
-            <MessageCircle className="w-4 h-4 shrink-0" />
-            <span className="md:hidden">Chat</span>
-            <span className="hidden md:inline">Chat IA</span>
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "minhas_questoes" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("minhas_questoes")}
-          >
-            <FileQuestion className="w-4 h-4 shrink-0" />
-            <span className="md:hidden">Editar cards</span>
-            <span className="hidden md:inline">Minhas flashcards</span>
-          </button>
-        </div>
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-muted/50 mb-6 md:flex md:flex-row">
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "flashcards"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("flashcards")}
+            >
+              <Layers className="w-4 h-4 shrink-0" />
+              <span className="md:hidden">Cards</span>
+              <span className="hidden md:inline">Flashcards</span>
+            </button>
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "quiz"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("quiz")}
+            >
+              <HelpCircle className="w-4 h-4 shrink-0" />
+              Quiz
+            </button>
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "chat"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("chat")}
+            >
+              <MessageCircle className="w-4 h-4 shrink-0" />
+              <span className="md:hidden">Chat</span>
+              <span className="hidden md:inline">Chat IA</span>
+            </button>
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "minhas_questoes"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("minhas_questoes")}
+            >
+              <FileQuestion className="w-4 h-4 shrink-0" />
+              <span className="md:hidden">Editar cards</span>
+              <span className="hidden md:inline">Minhas flashcards</span>
+            </button>
+          </div>
         )}
 
         <div ref={tabContentRef}>
-        {activeTab === "quiz" ? (
-          <div className="space-y-6 mb-8">
-            <StudyQuizPanel
-              cards={cards}
-              emptyText="Nenhum card para quiz. Adicione PDFs ao projeto."
+          {activeTab === "quiz" ? (
+            <div className="space-y-6 mb-8">
+              <StudyQuizPanel
+                cards={cards}
+                emptyText="Nenhum card para quiz. Adicione PDFs ao projeto."
+              />
+            </div>
+          ) : activeTab === "chat" ? (
+            <StudyChat
+              headerText="Pergunte sobre o conteúdo do projeto. A IA usa os resumos como contexto."
+              buildContext={() =>
+                resumosWithMaterial.map((b) => `${b.nomeArquivo}:\n${b.resumo}`).join("\n\n")
+              }
             />
-          </div>
-        ) : activeTab === "chat" ? (
-          <StudyChat
-            headerText="Pergunte sobre o conteúdo do projeto. A IA usa os resumos como contexto."
-            buildContext={() =>
-              resumosWithMaterial.map((b) => `${b.nomeArquivo}:\n${b.resumo}`).join("\n\n")
-            }
-          />
-        ) : activeTab === "minhas_questoes" ? (
-          <ProjectFlashcardEditor
-            items={cardsWithSource}
-            materiais={materiais}
-            saving={saving}
-            onSaveCard={handleSaveCard}
-            onDeleteCard={handleDeleteCard}
-          />
-        ) : cards.length === 0 ? (
-          <div className="rounded-xl border bg-card p-8 text-center">
-            <p className="text-muted-foreground mb-4">
-              Nenhum card para estudar. Adicione PDFs ao projeto para gerar
-              cards.
-            </p>
-            <Button asChild>
-              <Link href={`/project/${id}`}>Voltar ao projeto</Link>
-            </Button>
-          </div>
-        ) : (
-          <>
-            <FlashcardCarousel
-              cards={cards}
-              cardIndex={cardIndex}
-              onCardIndexChange={setCardIndex}
-              flipped={flipped}
-              onFlippedChange={setFlipped}
-              mode="project"
+          ) : activeTab === "minhas_questoes" ? (
+            <ProjectFlashcardEditor
+              items={cardsWithSource}
+              materiais={materiais}
+              saving={saving}
+              onSaveCard={handleSaveCard}
+              onDeleteCard={handleDeleteCard}
             />
-
-            <div className="mt-10 flex justify-center">
-              <Button asChild variant="secondary">
+          ) : cards.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center">
+              <p className="text-muted-foreground mb-4">
+                Nenhum card para estudar. Adicione PDFs ao projeto para gerar cards.
+              </p>
+              <Button asChild>
                 <Link href={`/project/${id}`}>Voltar ao projeto</Link>
               </Button>
             </div>
-          </>
-        )}
+          ) : (
+            <>
+              <FlashcardCarousel
+                cards={cards}
+                cardIndex={cardIndex}
+                onCardIndexChange={setCardIndex}
+                flipped={flipped}
+                onFlippedChange={setFlipped}
+                mode="project"
+              />
+
+              <div className="mt-10 flex justify-center">
+                <Button asChild variant="secondary">
+                  <Link href={`/project/${id}`}>Voltar ao projeto</Link>
+                </Button>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Modal: Editar resumo */}
         {editResumoMaterialId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setEditResumoMaterialId(null)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setEditResumoMaterialId(null)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-3">Editar resumo</h3>
               <textarea
                 value={editResumoValue}
@@ -598,13 +724,21 @@ export default function EstudarPage() {
                 className="min-h-[280px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-4 resize-y"
               />
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setEditResumoMaterialId(null)}>Cancelar</Button>
-                <Button disabled={saving} onClick={handleSaveResumo}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setEditResumoMaterialId(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button disabled={saving} onClick={handleSaveResumo}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+                </Button>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </Wrapper>
   );
