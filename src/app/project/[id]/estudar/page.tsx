@@ -81,6 +81,8 @@ export default function EstudarPage() {
   const [showSessionReminder, setShowSessionReminder] = useState(false);
   const [modoFoco, setModoFoco] = useState(() => (typeof window !== "undefined" ? getPreferences().modoFoco : false));
   const [pomodoroBreak, setPomodoroBreak] = useState<{ active: boolean; secondsLeft: number }>({ active: false, secondsLeft: 0 });
+  const [showTimerCompleteModal, setShowTimerCompleteModal] = useState(false);
+  const [sessionMinutesOverride, setSessionMinutesOverride] = useState<number | null>(null);
   const tabContentRef = useRef<HTMLDivElement>(null);
   const [editResumoMaterialId, setEditResumoMaterialId] = useState<string | null>(null);
   const [editResumoValue, setEditResumoValue] = useState("");
@@ -235,7 +237,8 @@ export default function EstudarPage() {
   // Lembrete de tempo de sessão (preferência "Alertas de tempo") — usa o menor entre preferência e duração do conteúdo
   useEffect(() => {
     if (loading || !project || !getPreferences().alertasTempo) return;
-    const preferred = getSessionDuration().minutes;
+    const prefs = getPreferences();
+    const preferred = prefs.pomodoroWorkMinutes ?? getSessionDuration().minutes;
     const totalMin = Math.max(5, getAllCards(project).length * 3);
     const effectiveMinutes = Math.min(preferred, totalMin);
     const ms = effectiveMinutes * 60 * 1000;
@@ -285,8 +288,12 @@ export default function EstudarPage() {
   const totalMin = Math.max(5, cards.length * 3);
   const materiais = project.materiais ?? (project.resumo || (project.cards?.length ?? 0) > 0 ? [{ id: "legacy", nomeArquivo: "PDF", resumo: project.resumo ?? "", cards: project.cards ?? [] }] : []);
   const sessionDuration = getSessionDuration();
-  const effectiveMinutes = Math.min(sessionDuration.minutes, totalMin);
-  const effectiveLabel = effectiveMinutes < sessionDuration.minutes ? `${effectiveMinutes} min` : sessionDuration.label;
+  const workMinutesFromPref = typeof window !== "undefined" ? getPreferences().pomodoroWorkMinutes : null;
+  const workMinutesBase = workMinutesFromPref ?? sessionDuration.minutes;
+  const effectiveMinutes = Math.min(workMinutesBase, totalMin);
+  const sessionMinutes = sessionMinutesOverride ?? effectiveMinutes;
+  const effectiveLabel = effectiveMinutes < workMinutesBase ? `${effectiveMinutes} min` : (workMinutesFromPref != null ? `${workMinutesBase} min` : sessionDuration.label);
+  const pomodoroBreakMinutes = typeof window !== "undefined" ? getPreferences().pomodoroBreakMinutes : 5;
 
   const enterModoFoco = () => {
     setPreferences({ modoFoco: true });
@@ -338,14 +345,13 @@ export default function EstudarPage() {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             <StudyTimer
-              initialMinutes={effectiveMinutes}
-              onComplete={() => {
-                if (getPreferences().pausasPomodoro) {
-                  setPomodoroBreak({ active: true, secondsLeft: 5 * 60 });
-                } else {
-                  setShowSessionReminder(true);
-                }
+              initialMinutes={sessionMinutes}
+              editable
+              onMinutesChange={(minutes) => {
+                setSessionMinutesOverride(minutes);
+                setPreferences({ pomodoroWorkMinutes: minutes });
               }}
+              onComplete={() => setShowTimerCompleteModal(true)}
             />
             {modoFoco ? (
               <Button variant="outline" size="sm" onClick={exitModoFoco} className="h-9 gap-1 px-3">
@@ -361,22 +367,89 @@ export default function EstudarPage() {
         </div>
 
         {pomodoroBreak.active && (
-          <div className="mb-6 rounded-xl border-2 border-primary/30 bg-primary/10 p-6 text-center">
-            {pomodoroBreak.secondsLeft > 0 ? (
-              <>
-                <p className="text-sm font-medium text-foreground mb-2">Pausa de 5 min</p>
-                <p className="font-mono text-2xl font-semibold text-foreground">
-                  {String(Math.floor(pomodoroBreak.secondsLeft / 60)).padStart(2, "0")}:{String(pomodoroBreak.secondsLeft % 60).padStart(2, "0")}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-foreground mb-3">Pausa concluída.</p>
-                <Button onClick={() => { setPomodoroBreak({ active: false, secondsLeft: 0 }); setShowSessionReminder(true); }}>
-                  Voltar ao estudo
-                </Button>
-              </>
-            )}
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            style={{ pointerEvents: "auto" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pausa-title"
+          >
+            <div className="rounded-xl border-2 border-primary/30 bg-card p-8 w-full max-w-sm shadow-xl text-center">
+              <h3 id="pausa-title" className="font-display font-bold text-lg text-foreground mb-1">
+                Pausa
+              </h3>
+              {pomodoroBreak.secondsLeft > 0 ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-3">Pausa de {pomodoroBreakMinutes} min — descanse um pouco.</p>
+                  <p className="font-mono text-4xl font-semibold text-foreground tabular-nums">
+                    {String(Math.floor(pomodoroBreak.secondsLeft / 60)).padStart(2, "0")}:{String(pomodoroBreak.secondsLeft % 60).padStart(2, "0")}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-4">Aguarde o fim da pausa para voltar ao estudo.</p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-foreground mb-4">Pausa concluída.</p>
+                  <Button onClick={() => { setPomodoroBreak({ active: false, secondsLeft: 0 }); setShowSessionReminder(true); }}>
+                    Voltar ao estudo
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showTimerCompleteModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowTimerCompleteModal(false)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl text-center"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="timer-complete-title"
+            >
+              <h3 id="timer-complete-title" className="font-display font-bold text-lg text-foreground mb-2">
+                Sessão concluída
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                O tempo de foco acabou. Que tal uma pausa antes de continuar?
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                {getPreferences().pausasPomodoro ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        const breakMins = getPreferences().pomodoroBreakMinutes ?? 5;
+                        setPomodoroBreak({ active: true, secondsLeft: breakMins * 60 });
+                        setShowTimerCompleteModal(false);
+                      }}
+                    >
+                      Iniciar pausa ({pomodoroBreakMinutes} min)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowSessionReminder(true);
+                        setShowTimerCompleteModal(false);
+                      }}
+                    >
+                      Agora não
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      setShowSessionReminder(true);
+                      setShowTimerCompleteModal(false);
+                    }}
+                  >
+                    OK
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 

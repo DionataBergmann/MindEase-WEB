@@ -98,6 +98,16 @@ html[data-font-size="G"] {
   transition-duration: 0.01ms !important;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -125,6 +135,23 @@ html[data-font-size="G"] {
   .font-body {
     font-family: var(--font-body);
   }
+}
+
+.skip-link {
+  @apply sr-only;
+}
+.skip-link:focus {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 100;
+  width: auto;
+  height: auto;
+  padding: 0.75rem 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  @apply bg-primary text-primary-foreground rounded outline-none ring-2 ring-ring;
 }
 
 /* Kanban: durante o arraste, a camada de drop fica ativa e aceita soltar em qualquer coluna */

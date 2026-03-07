@@ -92,6 +92,7 @@ export default function ProjectPage() {
           materiais: data.materiais ?? undefined,
           resumo: data.resumo,
           cards: data.cards ?? [],
+          checklist: data.checklist ?? undefined,
           createdAt: data.createdAt,
         });
       } catch {

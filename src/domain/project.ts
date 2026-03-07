@@ -11,6 +11,18 @@ export type ProjectCard = {
 
 export type MaterialStatus = "pending" | "in_progress" | "completed";
 
+export type ChecklistItem = {
+  id: string;
+  label: string;
+  done: boolean;
+  groupKey?: string;
+};
+
+export type ProjectChecklist = {
+  groupNames: string[];
+  items: ChecklistItem[];
+};
+
 export type Material = {
   id: string;
   nomeArquivo?: string;
@@ -38,5 +50,6 @@ export type Project = {
   materiais?: Material[];
   resumo?: string;
   cards?: ProjectCard[];
+  checklist?: ProjectChecklist;
   createdAt?: { seconds: number; nanoseconds: number };
 };

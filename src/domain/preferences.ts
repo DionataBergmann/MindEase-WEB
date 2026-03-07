@@ -24,6 +24,8 @@ export type UserPreferences = {
   pausasPomodoro: boolean;
   modoFocoEsconderMenu: boolean;
   nivelResumo: NivelResumo;
+  pomodoroWorkMinutes: number | null;
+  pomodoroBreakMinutes: number;
 };
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
@@ -39,6 +41,8 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   pausasPomodoro: false,
   modoFocoEsconderMenu: false,
   nivelResumo: "medio",
+  pomodoroWorkMinutes: null,
+  pomodoroBreakMinutes: 5,
 };
 
 /** Aba inicial ao abrir a tela de estudo (formato preferido). */

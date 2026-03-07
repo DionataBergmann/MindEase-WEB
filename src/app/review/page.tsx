@@ -10,6 +10,7 @@ import { collection, doc, query, where, orderBy, onSnapshot, updateDoc, serverTi
 import { AppShell } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
+import { getPreferences } from "@/lib/preferences";
 import { isCardDueForReview, getNextReviewDateFromLevel, CARD_RATING_LEVEL, CARD_RATING_DAYS } from "@/lib/spaced-repetition";
 import type { Project, Material, ProjectCard } from "@/types/project";
 
@@ -199,14 +200,19 @@ export default function ReviewPage() {
           className="cursor-pointer select-none min-h-[260px] [perspective:1000px] overflow-hidden"
           onClick={() => setFlipped((f) => !f)}
         >
+          {(() => {
+            const reducedMotion = typeof window !== "undefined" && getPreferences().animacoes === "reduzidas";
+            const slideTransition = reducedMotion ? { duration: 0 } : { type: "spring" as const, stiffness: 320, damping: 34 };
+            const flipTransition = reducedMotion ? { duration: 0 } : { duration: 0.5, ease: "easeInOut" as const };
+            return (
           <AnimatePresence initial={false} mode="wait" custom={1}>
             <motion.div
               key={currentIndex}
               custom={1}
-              initial={{ x: 120, opacity: 0 }}
+              initial={reducedMotion ? false : { x: 120, opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -120, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 34 }}
+              exit={reducedMotion ? undefined : { x: -120, opacity: 0 }}
+              transition={slideTransition}
               className="relative w-full h-full min-h-[260px]"
             >
               <motion.div
@@ -214,7 +220,7 @@ export default function ReviewPage() {
                 style={{ transformStyle: "preserve-3d" }}
                 initial={false}
                 animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+                transition={flipTransition}
               >
                 <div
                   className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
@@ -233,6 +239,8 @@ export default function ReviewPage() {
               </motion.div>
             </motion.div>
           </AnimatePresence>
+            );
+          })()}
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-3">

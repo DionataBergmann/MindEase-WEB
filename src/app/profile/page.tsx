@@ -287,7 +287,7 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-foreground">Pausas tipo Pomodoro</p>
-                <p className="text-xs text-muted-foreground">Após o timer de sessão, oferece pausa de 5 min</p>
+                <p className="text-xs text-muted-foreground">Após o timer de sessão, oferece pausa configurável</p>
               </div>
               <button
                 type="button"
@@ -298,6 +298,75 @@ export default function ProfilePage() {
               >
                 <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${prefs.pausasPomodoro ? "translate-x-5" : "translate-x-0"}`} />
               </button>
+            </div>
+            <div className="pt-4 mt-4 border-t border-border space-y-4">
+              <p className="text-sm font-medium text-foreground">Timer Pomodoro</p>
+              <p className="text-xs text-muted-foreground mb-3">
+                Defina a duração do foco (estudo) e da pausa. Se a duração do foco estiver em branco, será usada a duração da sessão (curta/média/longa).
+              </p>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="pomodoro-work" className="text-xs font-medium text-muted-foreground block mb-1">
+                    Duração do foco (min)
+                  </label>
+                  <Input
+                    id="pomodoro-work"
+                    type="number"
+                    min={1}
+                    max={120}
+                    placeholder="Usar duração da sessão"
+                    value={prefs.pomodoroWorkMinutes != null ? String(prefs.pomodoroWorkMinutes) : ""}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      if (raw === "") {
+                        updatePref("pomodoroWorkMinutes", null);
+                        return;
+                      }
+                      const n = Number(raw);
+                      if (!Number.isNaN(n)) {
+                        updatePref("pomodoroWorkMinutes", Math.max(1, Math.min(120, n)));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const raw = e.target.value.trim();
+                      if (raw === "") return;
+                      const n = Number(raw);
+                      if (!Number.isNaN(n) && n >= 1 && n <= 120) {
+                        updatePref("pomodoroWorkMinutes", n);
+                      }
+                    }}
+                    className="max-w-[8rem]"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="pomodoro-break" className="text-xs font-medium text-muted-foreground block mb-1">
+                    Duração da pausa (min)
+                  </label>
+                  <Input
+                    id="pomodoro-break"
+                    type="number"
+                    min={1}
+                    max={30}
+                    value={String(prefs.pomodoroBreakMinutes ?? 5)}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      if (raw === "") return;
+                      const n = Number(raw);
+                      if (!Number.isNaN(n)) {
+                        updatePref("pomodoroBreakMinutes", Math.max(1, Math.min(30, n)));
+                      }
+                    }}
+                    onBlur={(e) => {
+                      const raw = e.target.value.trim();
+                      const n = raw === "" ? 5 : Number(raw);
+                      if (!Number.isNaN(n)) {
+                        updatePref("pomodoroBreakMinutes", Math.max(1, Math.min(30, n)));
+                      }
+                    }}
+                    className="max-w-[8rem]"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </section>
