@@ -71,8 +71,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (!auth) {
-      setLoading(false);
-      router.replace("/login");
+      queueMicrotask(() => {
+        setLoading(false);
+        router.replace("/login");
+      });
       return;
     }
     const unsub = auth.onAuthStateChanged((user) => {

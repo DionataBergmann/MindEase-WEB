@@ -1,5 +1,11 @@
 @import "./_colors.css";
 
+/* next/font variables (set on <html>) override when present */
+:root {
+  --font-body: var(--font-dm-sans, "DM Sans", sans-serif);
+  --font-display: var(--font-nunito, "Nunito", sans-serif);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;

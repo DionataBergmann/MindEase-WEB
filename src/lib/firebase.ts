@@ -63,7 +63,7 @@ export function getFirebaseAnalytics() {
   if (typeof window === "undefined") return null;
   const app = getFirebaseApp();
   if (!app) return null;
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+   
   const { getAnalytics } = require("firebase/analytics");
   return getAnalytics(app);
 }

@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ] as const;
 
   useEffect(() => {
-    setMenuOpen(false);
+    queueMicrotask(() => setMenuOpen(false));
   }, [pathname]);
 
   useEffect(() => {

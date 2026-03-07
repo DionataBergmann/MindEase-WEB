@@ -20,7 +20,7 @@ export function SignupForm() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (!auth) {
-      setCheckingAuth(false);
+      queueMicrotask(() => setCheckingAuth(false));
       return;
     }
     const unsub = onAuthStateChanged(auth, (user) => {

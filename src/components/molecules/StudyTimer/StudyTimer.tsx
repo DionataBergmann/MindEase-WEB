@@ -29,7 +29,9 @@ export function StudyTimer({ initialMinutes, onComplete, editable, onMinutesChan
   const [editMinutes, setEditMinutes] = useState(String(initialMinutes));
   const inputRef = useRef<HTMLInputElement>(null);
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     setSecondsRemaining(initialMinutes * 60);
