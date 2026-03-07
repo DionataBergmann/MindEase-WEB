@@ -20,7 +20,7 @@ export function SignupForm() {
   useEffect(() => {
     const auth = getFirebaseAuth();
     if (!auth) {
-      setCheckingAuth(false);
+      queueMicrotask(() => setCheckingAuth(false));
       return;
     }
     const unsub = onAuthStateChanged(auth, (user) => {
@@ -64,7 +64,8 @@ export function SignupForm() {
       router.push("/home");
       router.refresh();
     } catch (err: unknown) {
-      const code = err && typeof err === "object" && "code" in err ? (err as { code: string }).code : "";
+      const code =
+        err && typeof err === "object" && "code" in err ? (err as { code: string }).code : "";
       if (code === "auth/email-already-in-use") {
         setFirebaseError("Este e-mail já está em uso. Tente fazer login.");
       } else if (code === "auth/weak-password") {
@@ -80,7 +81,10 @@ export function SignupForm() {
   if (checkingAuth) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" aria-hidden />
+        <div
+          className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+          aria-hidden
+        />
       </div>
     );
   }
@@ -90,12 +94,7 @@ export function SignupForm() {
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-0">
           <BrandLink href="/" size="auth" className="mb-0" />
-          <Image
-            src={loginIllustration}
-            alt=""
-            className="w-full max-w-[200px] h-auto"
-            priority
-          />
+          <Image src={loginIllustration} alt="" className="w-full max-w-[200px] h-auto" priority />
         </div>
         <Heading level={2} variant="auth" className="mb-1 text-center mt-0">
           Criar conta
@@ -106,7 +105,7 @@ export function SignupForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="name" className="block text-sm font-medium text-foreground mb-1.5">
-              Nome 
+              Nome
             </label>
             <Input
               id="name"
@@ -150,7 +149,10 @@ export function SignupForm() {
             )}
           </div>
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-1.5">
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-medium text-foreground mb-1.5"
+            >
               Confirmar senha
             </label>
             <Input

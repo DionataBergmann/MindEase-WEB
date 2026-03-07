@@ -14,8 +14,7 @@ const features = [
   {
     icon: LayoutList,
     title: "Kanban de estudo",
-    description:
-      "Visualize tópicos em colunas simples: estudar, em progresso, concluído.",
+    description: "Visualize tópicos em colunas simples: estudar, em progresso, concluído.",
   },
   {
     icon: Brain,

@@ -14,9 +14,7 @@ async function extractTextFromPdf(file: File): Promise<string> {
   for (let i = 1; i <= numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    const pageText = content.items
-      .map((item) => ("str" in item ? item.str : ""))
-      .join(" ");
+    const pageText = content.items.map((item) => ("str" in item ? item.str : "")).join(" ");
     fullText += pageText + "\n";
   }
 
@@ -123,9 +121,7 @@ export async function processSources({
     });
     const data = await res.json();
     if (!res.ok) {
-      throw new Error(
-        data.error ?? `Erro ao processar a foto ${i + 1} com a IA.`
-      );
+      throw new Error(data.error ?? `Erro ao processar a foto ${i + 1} com a IA.`);
     }
     allResults.push(data as ProcessContentResponse);
   }
@@ -137,14 +133,9 @@ export async function processSources({
  * Nome de exibição do tópico no índice i (para lista de resultados e materiais).
  * Ordem: PDFs primeiro, depois fotos (Foto 1, Foto 2… ou "Foto" se uma só).
  */
-export function getTopicDisplayName(
-  index: number,
-  pdfFiles: File[],
-  imageFiles: File[]
-): string {
+export function getTopicDisplayName(index: number, pdfFiles: File[], imageFiles: File[]): string {
   if (index < pdfFiles.length) return pdfFiles[index].name;
-  if (imageFiles.length > 1)
-    return `Foto ${index - pdfFiles.length + 1}`;
+  if (imageFiles.length > 1) return `Foto ${index - pdfFiles.length + 1}`;
   return imageFiles.length === 1 ? "Foto" : `Tópico ${index + 1}`;
 }
 
@@ -154,4 +145,3 @@ export function getSingleTopicDisplayName(pdfFiles: File[], imageFiles: File[]):
   if (imageFiles.length > 1) return `Fotos (${imageFiles.length})`;
   return imageFiles.length === 1 ? "Foto" : "Tópico";
 }
-

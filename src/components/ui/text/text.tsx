@@ -13,8 +13,7 @@ const TEXT_VARIANTS = {
 
 export type TextVariant = keyof typeof TEXT_VARIANTS;
 
-export interface TextPrimitiveProps
-  extends React.HTMLAttributes<HTMLParagraphElement> {
+export interface TextPrimitiveProps extends React.HTMLAttributes<HTMLParagraphElement> {
   variant?: TextVariant;
   as?: "p" | "span";
 }

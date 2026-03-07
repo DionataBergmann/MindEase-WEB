@@ -1,7 +1,4 @@
-import {
-  BrandLinkPrimitive,
-  type BrandLinkSize,
-} from "@/components/ui/brand-link";
+import { BrandLinkPrimitive, type BrandLinkSize } from "@/components/ui/brand-link";
 
 export type { BrandLinkSize };
 

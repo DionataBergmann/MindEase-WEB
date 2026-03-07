@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/atoms";
+import { getPreferences } from "@/lib/preferences";
 import type { ProjectCard } from "@/types/project";
 
 type FlashcardCarouselMode = "project" | "material";
@@ -24,10 +27,18 @@ export function FlashcardCarousel({
   mode,
 }: FlashcardCarouselProps) {
   const [slideDirection, setSlideDirection] = useState<1 | -1>(1);
+  const reducedMotion = typeof window !== "undefined" && getPreferences().animacoes === "reduzidas";
 
   const hasPrev = cardIndex > 0;
   const hasNext = cardIndex < cards.length - 1;
   const currentCard = cards[cardIndex] ?? null;
+
+  const slideTransition = reducedMotion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 320, damping: 34 };
+  const flipTransition = reducedMotion
+    ? { duration: 0 }
+    : { duration: 0.5, ease: "easeInOut" as const };
 
   const handlePrev = () => {
     if (!hasPrev) return;
@@ -60,10 +71,10 @@ export function FlashcardCarousel({
           <motion.div
             key={cardIndex}
             custom={slideDirection}
-            initial={{ x: slideDirection * 120, opacity: 0 }}
+            initial={reducedMotion ? false : { x: slideDirection * 120, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -slideDirection * 120, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 320, damping: 34 }}
+            exit={reducedMotion ? undefined : { x: -slideDirection * 120, opacity: 0 }}
+            transition={slideTransition}
             className="relative w-full h-full min-h-[220px]"
           >
             {currentCard && (
@@ -72,7 +83,7 @@ export function FlashcardCarousel({
                 style={{ transformStyle: "preserve-3d" }}
                 initial={false}
                 animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
+                transition={flipTransition}
               >
                 <div
                   className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
@@ -108,21 +119,11 @@ export function FlashcardCarousel({
         {footerText} · {cardIndex + 1}/{cards.length}
       </p>
       <div className="flex justify-center gap-4 mt-4">
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!hasPrev}
-          onClick={handlePrev}
-        >
+        <Button variant="outline" size="sm" disabled={!hasPrev} onClick={handlePrev}>
           <ChevronLeft className="w-4 h-4 mr-1" />
           Anterior
         </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={!hasNext}
-          onClick={handleNext}
-        >
+        <Button variant="outline" size="sm" disabled={!hasNext} onClick={handleNext}>
           Próximo
           <ChevronRight className="w-4 h-4 ml-1" />
         </Button>
@@ -130,4 +131,3 @@ export function FlashcardCarousel({
     </>
   );
 }
-

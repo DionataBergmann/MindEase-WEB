@@ -27,9 +27,7 @@ export default function NewProjectPage() {
   const resultsSectionRef = useRef<HTMLDivElement>(null);
 
   const hasSources = pdfFiles.length > 0 || imageFiles.length > 0;
-  const topicCount = mergeAllIntoOne
-    ? hasSources ? 1 : 0
-    : pdfFiles.length + imageFiles.length;
+  const topicCount = mergeAllIntoOne ? (hasSources ? 1 : 0) : pdfFiles.length + imageFiles.length;
 
   const removeResult = useCallback((index: number) => {
     setResults((prev) => prev.filter((_, i) => i !== index));
@@ -82,9 +80,7 @@ export default function NewProjectPage() {
     try {
       const firstName = pdfFiles[0]?.name ?? (imageFiles.length > 0 ? "Fotos" : "");
       const title =
-        projectName.trim() ||
-        firstName.replace(/\.(pdf|jpg|jpeg|png|webp)$/i, "") ||
-        "Sem título";
+        projectName.trim() || firstName.replace(/\.(pdf|jpg|jpeg|png|webp)$/i, "") || "Sem título";
       const materiais = results.map((result, i) => ({
         id: crypto.randomUUID(),
         nomeArquivo: getTopicDisplayName(i, pdfFiles, imageFiles),
@@ -133,7 +129,8 @@ export default function NewProjectPage() {
             Novo projeto de estudo
           </h1>
           <p className="text-muted-foreground mb-8">
-            Envie PDFs e/ou fotos de páginas. Abaixo você escolhe se quer um tópico por arquivo ou juntar tudo em um único tópico com resumo e cards.
+            Envie PDFs e/ou fotos de páginas. Abaixo você escolhe se quer um tópico por arquivo ou
+            juntar tudo em um único tópico com resumo e cards.
           </p>
 
           <div className="space-y-6">
@@ -175,12 +172,7 @@ export default function NewProjectPage() {
               imageFiles={imageFiles}
               onRemoveResult={removeResult}
             >
-              <Button
-                onClick={handleSaveProject}
-                disabled={isSaving}
-                size="lg"
-                className="w-full"
-              >
+              <Button onClick={handleSaveProject} disabled={isSaving} size="lg" className="w-full">
                 {isSaving ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />

@@ -1,5 +1,12 @@
 import { LucideIcon } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, IconBox } from "@/components/atoms";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  IconBox,
+} from "@/components/atoms";
 import { cn } from "@/lib/utils";
 
 export interface FeatureCardProps {

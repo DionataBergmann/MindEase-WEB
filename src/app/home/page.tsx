@@ -4,9 +4,35 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Plus, BookOpen, Clock, Leaf, Search, Loader2, BookMarked, MoreVertical, Pencil, Trash2, Settings, X, RefreshCw, Layers } from "lucide-react";
+import {
+  Plus,
+  BookOpen,
+  Clock,
+  Leaf,
+  Search,
+  Loader2,
+  BookMarked,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Settings,
+  X,
+  RefreshCw,
+  Layers,
+} from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, doc, query, where, orderBy, onSnapshot, updateDoc, deleteDoc, serverTimestamp, type Timestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  type Timestamp,
+} from "firebase/firestore";
 import { AppShell } from "@/components/organisms";
 import { Button, Input } from "@/components/atoms";
 import { Progress } from "@/components/ui/progress";
@@ -88,7 +114,14 @@ export default function HomePage() {
             const materiais: Material[] = Array.isArray(data.materiais)
               ? data.materiais
               : data.resumo || (data.cards?.length ?? 0) > 0
-                ? [{ id: "legacy", nomeArquivo: "PDF", resumo: data.resumo ?? "", cards: data.cards ?? [] }]
+                ? [
+                    {
+                      id: "legacy",
+                      nomeArquivo: "PDF",
+                      resumo: data.resumo ?? "",
+                      cards: data.cards ?? [],
+                    },
+                  ]
                 : [];
             return {
               id: doc.id,
@@ -182,7 +215,9 @@ export default function HomePage() {
   const allTags = useMemo(() => {
     const set = new Set<string>();
     projects.forEach((p) => p.tags?.forEach((t) => set.add(t.trim())));
-    return Array.from(set).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    return Array.from(set)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b));
   }, [projects]);
 
   const filtered = useMemo(() => {
@@ -203,18 +238,20 @@ export default function HomePage() {
 
   const totalProgress =
     projects.length > 0
-      ? Math.round(
-          projects.reduce((acc, p) => acc + p.progress, 0) / projects.length
-        )
+      ? Math.round(projects.reduce((acc, p) => acc + p.progress, 0) / projects.length)
       : 0;
 
   const totalTopics = projects.reduce(
-    (acc, p) => acc + (p.materiais?.length ?? (p.pdfCount || (p.resumo || (p.cards?.length ?? 0) > 0 ? 1 : 0))),
+    (acc, p) =>
+      acc +
+      (p.materiais?.length ?? (p.pdfCount || (p.resumo || (p.cards?.length ?? 0) > 0 ? 1 : 0))),
     0
   );
   const completedTopicCount = projects.reduce((acc, p) => {
-    if (p.materiais?.length) return acc + p.materiais.filter((m) => (m.status ?? "pending") === "completed").length;
-    if (p.progress === 100 && (p.pdfCount || p.resumo || (p.cards?.length ?? 0) > 0)) return acc + 1;
+    if (p.materiais?.length)
+      return acc + p.materiais.filter((m) => (m.status ?? "pending") === "completed").length;
+    if (p.progress === 100 && (p.pdfCount || p.resumo || (p.cards?.length ?? 0) > 0))
+      return acc + 1;
     return acc;
   }, 0);
   const topicProgress = totalTopics > 0 ? Math.round((completedTopicCount / totalTopics) * 100) : 0;
@@ -307,9 +344,12 @@ export default function HomePage() {
                   <Settings className="w-5 h-5 text-primary" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="font-semibold text-foreground mb-0.5">Personalize sua experiência</h2>
+                  <h2 className="font-semibold text-foreground mb-0.5">
+                    Personalize sua experiência
+                  </h2>
                   <p className="text-sm text-muted-foreground">
-                    Configure formato de estudo (flashcards, quiz), duração das sessões, tamanho do resumo e outras opções no seu perfil.
+                    Configure formato de estudo (flashcards, quiz), duração das sessões, tamanho do
+                    resumo e outras opções no seu perfil.
                   </p>
                 </div>
               </div>
@@ -342,7 +382,8 @@ export default function HomePage() {
               Para revisar hoje
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
-              {dueForReview.length} tópico{dueForReview.length !== 1 ? "s" : ""} na fila de repetição espaçada.
+              {dueForReview.length} tópico{dueForReview.length !== 1 ? "s" : ""} na fila de
+              repetição espaçada.
             </p>
             <ul className="space-y-2">
               {dueForReview.slice(0, 10).map(({ project, material }) => (
@@ -363,7 +404,8 @@ export default function HomePage() {
             </ul>
             {dueForReview.length > 10 && (
               <p className="text-xs text-muted-foreground mt-2">
-                e mais {dueForReview.length - 10} tópico{dueForReview.length - 10 !== 1 ? "s" : ""} para revisar
+                e mais {dueForReview.length - 10} tópico{dueForReview.length - 10 !== 1 ? "s" : ""}{" "}
+                para revisar
               </p>
             )}
           </motion.div>
@@ -383,7 +425,10 @@ export default function HomePage() {
           <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:flex sm:flex-shrink-0">
             {!loading && dueCards.length > 0 && (
               <Button asChild variant="outline" size="default" className="min-w-0">
-                <Link href="/review" className="inline-flex items-center justify-center gap-2 w-full">
+                <Link
+                  href="/review"
+                  className="inline-flex items-center justify-center gap-2 w-full"
+                >
                   <Layers className="w-4 h-4 shrink-0" />
                   <span className="truncate">Revisar cards ({dueCards.length})</span>
                 </Link>
@@ -393,7 +438,10 @@ export default function HomePage() {
               asChild
               className={!loading && dueCards.length > 0 ? "min-w-0" : "col-span-2 sm:col-span-1"}
             >
-              <Link href="/new-project" className="inline-flex items-center justify-center gap-2 w-full">
+              <Link
+                href="/new-project"
+                className="inline-flex items-center justify-center gap-2 w-full"
+              >
                 <Plus className="w-4 h-4 shrink-0" />
                 Novo projeto
               </Link>
@@ -429,125 +477,126 @@ export default function HomePage() {
             <Loader2 className="w-8 h-8 text-primary animate-spin" />
           </div>
         ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((project, i) => (
-            <motion.div
-              key={project.id}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: i * 0.08 }}
-              className="relative bg-card rounded-xl border p-6 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30 transition-all group overflow-visible"
-            >
-              <div className="absolute top-3 right-3 z-20" ref={menuOpenId === project.id ? menuRef : undefined}>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMenuOpenId((id) => (id === project.id ? null : project.id));
-                  }}
-                >
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-                {menuOpenId === project.id && (
-                  <div className="absolute right-0 top-full mt-1 w-44 rounded-lg border bg-card py-1 shadow-lg z-30">
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted"
-                      onClick={() => {
-                        setEditProject(project);
-                        setEditTitle(project.title);
-                        setEditTags(project.tags ?? []);
-                        setNewTagInput("");
-                        setMenuOpenId(null);
-                      }}
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                      Editar projeto
-                    </button>
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        setDeleteProjectId(project.id);
-                        setMenuOpenId(null);
-                      }}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Excluir
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <Link
-                href={`/project/${project.id}`}
-                className="block relative z-10"
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {filtered.map((project, i) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.08 }}
+                className="relative bg-card rounded-xl border p-6 hover:shadow-lg hover:shadow-primary/5 hover:border-primary/30 transition-all group overflow-visible"
               >
-                <div className="absolute -bottom-3 -right-3 text-primary/5 group-hover:text-primary/10 transition-colors rotate-45">
-                  <Leaf className="w-16 h-16" />
-                </div>
-
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
-                      {project.emoji}
-                    </div>
-                    {project.progress === 100 && (
-                      <span className="text-xs font-medium bg-success/15 text-success px-2.5 py-1 rounded-full">
-                        ✓ Concluído
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors mb-1">
-                    {project.title}
-                  </h3>
-                  {project.tags && project.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {project.tags.map((tag) => (
-                        <span key={tag} className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                          {tag}
-                        </span>
-                      ))}
+                <div
+                  className="absolute top-3 right-3 z-20"
+                  ref={menuOpenId === project.id ? menuRef : undefined}
+                >
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setMenuOpenId((id) => (id === project.id ? null : project.id));
+                    }}
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                  {menuOpenId === project.id && (
+                    <div className="absolute right-0 top-full mt-1 w-44 rounded-lg border bg-card py-1 shadow-lg z-30">
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted"
+                        onClick={() => {
+                          setEditProject(project);
+                          setEditTitle(project.title);
+                          setEditTags(project.tags ?? []);
+                          setNewTagInput("");
+                          setMenuOpenId(null);
+                        }}
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                        Editar projeto
+                      </button>
+                      <button
+                        type="button"
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          setDeleteProjectId(project.id);
+                          setMenuOpenId(null);
+                        }}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Excluir
+                      </button>
                     </div>
                   )}
+                </div>
 
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
-                    <span className="flex items-center gap-1.5">
-                      <BookOpen className="w-3.5 h-3.5" />
-                      {project.pdfCount} PDFs
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5" />
-                      {project.lastAccess}
-                    </span>
+                <Link href={`/project/${project.id}`} className="block relative z-10">
+                  <div className="absolute -bottom-3 -right-3 text-primary/5 group-hover:text-primary/10 transition-colors rotate-45">
+                    <Leaf className="w-16 h-16" />
                   </div>
 
-                  <div>
-                    <div className="flex justify-between text-xs mb-1.5">
-                      <span className="text-muted-foreground">Progresso</span>
-                      <span className="font-semibold text-foreground">
-                        {project.progress}%
+                  <div className="relative z-10">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-xl">
+                        {project.emoji}
+                      </div>
+                      {project.progress === 100 && (
+                        <span className="text-xs font-medium bg-success/15 text-success px-2.5 py-1 rounded-full">
+                          ✓ Concluído
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="font-display font-bold text-lg text-foreground group-hover:text-primary transition-colors mb-1">
+                      {project.title}
+                    </h3>
+                    {project.tags && project.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mb-2">
+                        {project.tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+                      <span className="flex items-center gap-1.5">
+                        <BookOpen className="w-3.5 h-3.5" />
+                        {project.pdfCount} PDFs
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5" />
+                        {project.lastAccess}
                       </span>
                     </div>
-                    <Progress value={project.progress} className="h-2" />
+
+                    <div>
+                      <div className="flex justify-between text-xs mb-1.5">
+                        <span className="text-muted-foreground">Progresso</span>
+                        <span className="font-semibold text-foreground">{project.progress}%</span>
+                      </div>
+                      <Progress value={project.progress} className="h-2" />
+                    </div>
                   </div>
+                </Link>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <Button asChild size="sm" className="w-full" variant="secondary">
+                    <Link href={`/project/${project.id}/estudar`}>
+                      <BookMarked className="w-4 h-4 mr-2" />
+                      Estudar
+                    </Link>
+                  </Button>
                 </div>
-              </Link>
-              <div className="mt-4 pt-4 border-t border-border">
-                <Button asChild size="sm" className="w-full" variant="secondary">
-                  <Link href={`/project/${project.id}/estudar`}>
-                    <BookMarked className="w-4 h-4 mr-2" />
-                    Estudar
-                  </Link>
-                </Button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              </motion.div>
+            ))}
+          </div>
         )}
 
         {!loading && filtered.length === 0 && (
@@ -557,16 +606,20 @@ export default function HomePage() {
             className="text-center py-16"
           >
             <Leaf className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-muted-foreground">
-              Nenhum projeto encontrado.
-            </p>
+            <p className="text-muted-foreground">Nenhum projeto encontrado.</p>
           </motion.div>
         )}
 
         {/* Modal: Editar projeto (nome + tags) */}
         {editProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && (setEditProject(null), setEditTags([]), setNewTagInput(""))}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-md shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && (setEditProject(null), setEditTags([]), setNewTagInput(""))}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-md shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-3">Editar projeto</h3>
               <label className="text-xs font-medium text-muted-foreground block mb-1">Nome</label>
               <Input
@@ -583,7 +636,12 @@ export default function HomePage() {
                     className="inline-flex items-center gap-1 rounded-full bg-primary/10 text-primary px-2.5 py-0.5 text-xs font-medium"
                   >
                     {tag}
-                    <button type="button" onClick={() => removeEditTag(tag)} className="hover:opacity-80" aria-label={`Remover ${tag}`}>
+                    <button
+                      type="button"
+                      onClick={() => removeEditTag(tag)}
+                      className="hover:opacity-80"
+                      aria-label={`Remover ${tag}`}
+                    >
                       <X className="w-3 h-3" />
                     </button>
                   </span>
@@ -602,7 +660,16 @@ export default function HomePage() {
                 </Button>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => { setEditProject(null); setEditTags([]); setNewTagInput(""); }}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => {
+                    setEditProject(null);
+                    setEditTags([]);
+                    setNewTagInput("");
+                  }}
+                >
                   Cancelar
                 </Button>
                 <Button disabled={saving || !editTitle.trim()} onClick={handleSaveProject}>
@@ -615,14 +682,25 @@ export default function HomePage() {
 
         {/* Modal: Confirmar exclusão do projeto */}
         {deleteProjectId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setDeleteProjectId(null)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setDeleteProjectId(null)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-2">Excluir projeto?</h3>
               <p className="text-muted-foreground text-sm mb-4">
                 Esta ação não pode ser desfeita. Todos os materiais e cards serão removidos.
               </p>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setDeleteProjectId(null)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setDeleteProjectId(null)}
+                >
                   Cancelar
                 </Button>
                 <Button variant="destructive" disabled={saving} onClick={handleDeleteProject}>

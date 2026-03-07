@@ -50,7 +50,13 @@ export function StudyQuizPanel({ cards, emptyText }: StudyQuizPanelProps) {
   const isQuizEnd = quizStarted && quizItems.length > 0 && quizIndex >= quizItems.length;
 
   useEffect(() => {
-    if (!quizAnswered || !quizCorrect || quizItems.length === 0 || quizIndex >= quizItems.length - 1) return;
+    if (
+      !quizAnswered ||
+      !quizCorrect ||
+      quizItems.length === 0 ||
+      quizIndex >= quizItems.length - 1
+    )
+      return;
     const t1 = setTimeout(() => setQuizNextLoading(true), 2100);
     const t2 = setTimeout(() => {
       setQuizIndex((i) => i + 1);
@@ -138,7 +144,9 @@ export function StudyQuizPanel({ cards, emptyText }: StudyQuizPanelProps) {
         <p className="text-sm text-muted-foreground mb-2">
           Pergunta {quizIndex + 1} de {quizItems.length}
         </p>
-        <p className="font-display font-semibold text-lg text-foreground mb-4">{currentQuiz.question}</p>
+        <p className="font-display font-semibold text-lg text-foreground mb-4">
+          {currentQuiz.question}
+        </p>
         <div className="space-y-2">
           {currentQuiz.options.map((opt, i) => (
             <Button
@@ -149,8 +157,8 @@ export function StudyQuizPanel({ cards, emptyText }: StudyQuizPanelProps) {
                   ? i === currentQuiz.options.indexOf(currentQuiz.correctAnswer)
                     ? "default"
                     : quizSelectedIndex === i
-                    ? "destructive"
-                    : "outline"
+                      ? "destructive"
+                      : "outline"
                   : "outline"
               }
               className="w-full min-w-0 justify-start text-left h-auto min-h-[2.75rem] py-3 px-4 whitespace-normal break-words"
@@ -211,4 +219,3 @@ export function StudyQuizPanel({ cards, emptyText }: StudyQuizPanelProps) {
     </>
   );
 }
-

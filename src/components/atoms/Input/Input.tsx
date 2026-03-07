@@ -3,7 +3,7 @@ import { Input as UIInput, type InputProps as UIInputProps } from "@/components/
 
 export type InputProps = UIInputProps;
 
-export const Input = forwardRef<HTMLInputElement, InputProps>(
-  (props, ref) => <UIInput ref={ref} {...props} />
-);
+export const Input = forwardRef<HTMLInputElement, InputProps>((props, ref) => (
+  <UIInput ref={ref} {...props} />
+));
 Input.displayName = "Input";

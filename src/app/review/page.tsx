@@ -6,11 +6,26 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Loader2, Layers } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, doc, query, where, orderBy, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { AppShell } from "@/components/organisms";
 import { Button } from "@/components/atoms";
 import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
-import { isCardDueForReview, getNextReviewDateFromLevel, CARD_RATING_LEVEL, CARD_RATING_DAYS } from "@/lib/spaced-repetition";
+import { getPreferences } from "@/lib/preferences";
+import {
+  isCardDueForReview,
+  getNextReviewDateFromLevel,
+  CARD_RATING_LEVEL,
+  CARD_RATING_DAYS,
+} from "@/lib/spaced-repetition";
 import type { Project, Material, ProjectCard } from "@/types/project";
 
 type DueCardItem = { project: Project; material: Material; cardIndex: number; card: ProjectCard };
@@ -50,7 +65,14 @@ export default function ReviewPage() {
             const materiais: Material[] = Array.isArray(data.materiais)
               ? data.materiais
               : data.resumo || (data.cards?.length ?? 0) > 0
-                ? [{ id: "legacy", nomeArquivo: "PDF", resumo: data.resumo ?? "", cards: data.cards ?? [] }]
+                ? [
+                    {
+                      id: "legacy",
+                      nomeArquivo: "PDF",
+                      resumo: data.resumo ?? "",
+                      cards: data.cards ?? [],
+                    },
+                  ]
                 : [];
             return {
               id: docSnap.id,
@@ -141,15 +163,21 @@ export default function ReviewPage() {
     return (
       <AppShell>
         <div className="max-w-2xl mx-auto py-12">
-          <Link href="/home" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+          <Link
+            href="/home"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+          >
             <ArrowLeft className="w-4 h-4" />
             Voltar à Biblioteca
           </Link>
           <div className="rounded-xl border bg-card p-12 text-center">
             <Layers className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-            <h1 className="font-display text-xl font-bold text-foreground mb-2">Nenhum card para revisar</h1>
+            <h1 className="font-display text-xl font-bold text-foreground mb-2">
+              Nenhum card para revisar
+            </h1>
             <p className="text-muted-foreground mb-6">
-              Quando você classificar cards como Fácil, Médio ou Difícil, eles entrarão na fila de revisão e aparecerão aqui.
+              Quando você classificar cards como Fácil, Médio ou Difícil, eles entrarão na fila de
+              revisão e aparecerão aqui.
             </p>
             <Button asChild>
               <Link href="/home">Ir para Biblioteca</Link>
@@ -164,13 +192,18 @@ export default function ReviewPage() {
     return (
       <AppShell>
         <div className="max-w-2xl mx-auto py-12">
-          <Link href="/home" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+          <Link
+            href="/home"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+          >
             <ArrowLeft className="w-4 h-4" />
             Voltar à Biblioteca
           </Link>
           <div className="rounded-xl border bg-card p-12 text-center">
             <Layers className="w-12 h-12 text-primary mx-auto mb-4" />
-            <h1 className="font-display text-xl font-bold text-foreground mb-2">Revisão concluída</h1>
+            <h1 className="font-display text-xl font-bold text-foreground mb-2">
+              Revisão concluída
+            </h1>
             <p className="text-muted-foreground mb-6">
               Você revisou {sessionCards.length} card{sessionCards.length !== 1 ? "s" : ""}.
             </p>
@@ -186,57 +219,83 @@ export default function ReviewPage() {
   return (
     <AppShell>
       <div className="max-w-2xl mx-auto py-8">
-        <Link href="/home" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6">
+        <Link
+          href="/home"
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+        >
           <ArrowLeft className="w-4 h-4" />
           Voltar à Biblioteca
         </Link>
 
         <p className="text-sm text-muted-foreground mb-4">
-          Revisão · {currentIndex + 1} de {sessionCards.length} card{sessionCards.length !== 1 ? "s" : ""}
+          Revisão · {currentIndex + 1} de {sessionCards.length} card
+          {sessionCards.length !== 1 ? "s" : ""}
         </p>
 
         <div
           className="cursor-pointer select-none min-h-[260px] [perspective:1000px] overflow-hidden"
           onClick={() => setFlipped((f) => !f)}
         >
-          <AnimatePresence initial={false} mode="wait" custom={1}>
-            <motion.div
-              key={currentIndex}
-              custom={1}
-              initial={{ x: 120, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: -120, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 320, damping: 34 }}
-              className="relative w-full h-full min-h-[260px]"
-            >
-              <motion.div
-                className="relative w-full h-full min-h-[260px]"
-                style={{ transformStyle: "preserve-3d" }}
-                initial={false}
-                animate={{ rotateY: flipped ? 180 : 0 }}
-                transition={{ duration: 0.5, ease: "easeInOut" }}
-              >
-                <div
-                  className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
-                  style={{ backfaceVisibility: "hidden" }}
+          {(() => {
+            const reducedMotion =
+              typeof window !== "undefined" && getPreferences().animacoes === "reduzidas";
+            const slideTransition = reducedMotion
+              ? { duration: 0 }
+              : { type: "spring" as const, stiffness: 320, damping: 34 };
+            const flipTransition = reducedMotion
+              ? { duration: 0 }
+              : { duration: 0.5, ease: "easeInOut" as const };
+            return (
+              <AnimatePresence initial={false} mode="wait" custom={1}>
+                <motion.div
+                  key={currentIndex}
+                  custom={1}
+                  initial={reducedMotion ? false : { x: 120, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={reducedMotion ? undefined : { x: -120, opacity: 0 }}
+                  transition={slideTransition}
+                  className="relative w-full h-full min-h-[260px]"
                 >
-                  <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">Pergunta</p>
-                  <p className="font-display text-lg font-bold text-foreground">{current!.card.titulo}</p>
-                </div>
-                <div
-                  className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
-                  style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
-                >
-                  <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">Resposta</p>
-                  <p className="text-foreground leading-relaxed whitespace-pre-wrap">{current!.card.conteudo}</p>
-                </div>
-              </motion.div>
-            </motion.div>
-          </AnimatePresence>
+                  <motion.div
+                    className="relative w-full h-full min-h-[260px]"
+                    style={{ transformStyle: "preserve-3d" }}
+                    initial={false}
+                    animate={{ rotateY: flipped ? 180 : 0 }}
+                    transition={flipTransition}
+                  >
+                    <div
+                      className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
+                      style={{ backfaceVisibility: "hidden" }}
+                    >
+                      <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
+                        Pergunta
+                      </p>
+                      <p className="font-display text-lg font-bold text-foreground">
+                        {current!.card.titulo}
+                      </p>
+                    </div>
+                    <div
+                      className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
+                      style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}
+                    >
+                      <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
+                        Resposta
+                      </p>
+                      <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+                        {current!.card.conteudo}
+                      </p>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </AnimatePresence>
+            );
+          })()}
         </div>
 
         <p className="text-center text-xs text-muted-foreground mt-3">
-          {flipped ? "Como foi? Escolha para agendar a próxima revisão." : "Clique para ver a resposta"}
+          {flipped
+            ? "Como foi? Escolha para agendar a próxima revisão."
+            : "Clique para ver a resposta"}
         </p>
 
         {flipped && (

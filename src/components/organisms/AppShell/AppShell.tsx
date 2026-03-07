@@ -17,7 +17,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   ] as const;
 
   useEffect(() => {
-    setMenuOpen(false);
+    queueMicrotask(() => setMenuOpen(false));
   }, [pathname]);
 
   useEffect(() => {
@@ -45,23 +45,23 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <a href="#main-content" className="skip-link">
+        Pular para o conteúdo
+      </a>
+      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50" role="banner">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           <Link
             href="/home"
             className="font-display text-xl font-bold text-primary shrink-0"
+            aria-label="MindEase - ir para Biblioteca"
           >
             MindEase
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden md:flex items-center gap-1">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Navegação principal">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={linkClass(item.href)}
-              >
+              <Link key={item.href} href={item.href} className={linkClass(item.href)}>
                 <item.icon className="w-4 h-4 shrink-0" />
                 {item.label}
               </Link>
@@ -99,7 +99,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">{children}</main>
+      <main id="main-content" className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8" role="main">
+        {children}
+      </main>
     </div>
   );
 }

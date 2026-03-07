@@ -6,13 +6,19 @@ function easeOutCubic(t: number): number {
 }
 
 /**
- * Rola a página até o elemento. Respeita a preferência "Animações":
- * - Reduzidas: scroll instantâneo (previsível, menos estímulo).
- * - Normal: scroll suave com duração maior (1000ms) e easing para não parecer "violento".
+ * Rola a página até o elemento. Respeita a preferência "Animações" e prefers-reduced-motion:
+ * - Reduzidas (perfil) ou prefers-reduced-motion: scroll instantâneo (previsível, menos estímulo).
+ * - Normal: scroll suave com duração maior e easing.
  */
-export function scrollToElement(element: HTMLElement, options?: { block?: ScrollLogicalPosition; durationMs?: number }): void {
+export function scrollToElement(
+  element: HTMLElement,
+  options?: { block?: ScrollLogicalPosition; durationMs?: number }
+): void {
   const { block = "start", durationMs = 2000 } = options ?? {};
-  const reducedMotion = getPreferences().animacoes === "reduzidas";
+  const prefsReduced = getPreferences().animacoes === "reduzidas";
+  const systemReduced =
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const reducedMotion = prefsReduced || systemReduced;
 
   if (reducedMotion) {
     element.scrollIntoView({ behavior: "auto", block });

@@ -26,9 +26,21 @@ import { onAuthStateChanged } from "firebase/auth";
 import { AppShell } from "@/components/organisms";
 import { Button, Input } from "@/components/atoms";
 import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
-import { getPreferredStudyTab, getSessionDuration, getPreferences, setPreferences, getDisplayResumo } from "@/lib/preferences";
+import {
+  getPreferredStudyTab,
+  getSessionDuration,
+  getPreferences,
+  setPreferences,
+  getDisplayResumo,
+} from "@/lib/preferences";
 import { scrollToElement } from "@/lib/scroll";
-import { isDueForReview, getNextReviewDateFromLevel, todayISO, CARD_RATING_LEVEL, CARD_RATING_DAYS } from "@/lib/spaced-repetition";
+import {
+  isDueForReview,
+  getNextReviewDateFromLevel,
+  todayISO,
+  CARD_RATING_LEVEL,
+  CARD_RATING_DAYS,
+} from "@/lib/spaced-repetition";
 import { StudyTimer } from "@/components/molecules";
 import { FlashcardCarousel } from "@/components/study/FlashcardCarousel";
 import { StudyQuizPanel } from "@/components/study/StudyQuizPanel";
@@ -51,10 +63,19 @@ export default function MaterialStudyPage() {
   const [notFound, setNotFound] = useState(false);
   const [cardIndex, setCardIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [activeTab, setActiveTab] = useState<"flashcards" | "quiz" | "chat" | "minhas_questoes">(() => getPreferredStudyTab());
+  const [activeTab, setActiveTab] = useState<"flashcards" | "quiz" | "chat" | "minhas_questoes">(
+    () => getPreferredStudyTab()
+  );
   const [showSessionReminder, setShowSessionReminder] = useState(false);
-  const [modoFoco, setModoFoco] = useState(() => (typeof window !== "undefined" ? getPreferences().modoFoco : false));
-  const [pomodoroBreak, setPomodoroBreak] = useState<{ active: boolean; secondsLeft: number }>({ active: false, secondsLeft: 0 });
+  const [modoFoco, setModoFoco] = useState(() =>
+    typeof window !== "undefined" ? getPreferences().modoFoco : false
+  );
+  const [pomodoroBreak, setPomodoroBreak] = useState<{ active: boolean; secondsLeft: number }>({
+    active: false,
+    secondsLeft: 0,
+  });
+  const [showTimerCompleteModal, setShowTimerCompleteModal] = useState(false);
+  const [sessionMinutesOverride, setSessionMinutesOverride] = useState<number | null>(null);
   const tabContentRef = useRef<HTMLDivElement>(null);
   const [editResumoOpen, setEditResumoOpen] = useState(false);
   const [editResumoValue, setEditResumoValue] = useState("");
@@ -89,7 +110,7 @@ export default function MaterialStudyPage() {
         }
         const materiais: Material[] = Array.isArray(data.materiais)
           ? data.materiais
-          : data.resumo || (data.cards?.length > 0)
+          : data.resumo || data.cards?.length > 0
             ? [
                 {
                   id: "legacy",
@@ -145,7 +166,13 @@ export default function MaterialStudyPage() {
   const cards: ProjectCard[] = material?.cards ?? [];
 
   useEffect(() => {
-    if ((activeTab === "flashcards" || activeTab === "quiz" || activeTab === "chat" || activeTab === "minhas_questoes") && tabContentRef.current) {
+    if (
+      (activeTab === "flashcards" ||
+        activeTab === "quiz" ||
+        activeTab === "chat" ||
+        activeTab === "minhas_questoes") &&
+      tabContentRef.current
+    ) {
       scrollToElement(tabContentRef.current, { block: "start" });
     }
   }, [activeTab]);
@@ -165,7 +192,9 @@ export default function MaterialStudyPage() {
   useEffect(() => {
     if (!pomodoroBreak.active || pomodoroBreak.secondsLeft <= 0) return;
     const t = setInterval(() => {
-      setPomodoroBreak((p) => (p.secondsLeft <= 1 ? { ...p, secondsLeft: 0 } : { ...p, secondsLeft: p.secondsLeft - 1 }));
+      setPomodoroBreak((p) =>
+        p.secondsLeft <= 1 ? { ...p, secondsLeft: 0 } : { ...p, secondsLeft: p.secondsLeft - 1 }
+      );
     }, 1000);
     return () => clearInterval(t);
   }, [pomodoroBreak.active, pomodoroBreak.secondsLeft]);
@@ -194,7 +223,14 @@ export default function MaterialStudyPage() {
     const db = getFirestoreDb();
     if (!db) return;
     const nivel = getPreferences().nivelResumo;
-    const field = nivel === "breve" ? "resumoBreve" : nivel === "medio" ? "resumoMedio" : nivel === "completo" ? "resumoCompleto" : "resumo";
+    const field =
+      nivel === "breve"
+        ? "resumoBreve"
+        : nivel === "medio"
+          ? "resumoMedio"
+          : nivel === "completo"
+            ? "resumoCompleto"
+            : "resumo";
     setSaving(true);
     try {
       const updated = project.materiais.map((m) =>
@@ -213,7 +249,8 @@ export default function MaterialStudyPage() {
   };
 
   const handleRateCard = async (rating: "dificil" | "medio" | "facil") => {
-    if (!projectId || !materialId || !project?.materiais || !material || currentCard == null) return;
+    if (!projectId || !materialId || !project?.materiais || !material || currentCard == null)
+      return;
     const db = getFirestoreDb();
     if (!db) return;
     const level = CARD_RATING_LEVEL[rating];
@@ -247,9 +284,7 @@ export default function MaterialStudyPage() {
     const nextReviewAt = getNextReviewDateFromLevel(level);
     const lastReviewedAt = todayISO();
     const updated = project.materiais.map((m) =>
-      m.id === materialId
-        ? { ...m, lastReviewedAt, nextReviewAt, intervalLevel: level }
-        : m
+      m.id === materialId ? { ...m, lastReviewedAt, nextReviewAt, intervalLevel: level } : m
     );
     setSaving(true);
     try {
@@ -265,7 +300,12 @@ export default function MaterialStudyPage() {
     }
   };
 
-  const handleSaveCard = async (opts: { mode: "edit" | "new"; index?: number; titulo: string; conteudo: string }) => {
+  const handleSaveCard = async (opts: {
+    mode: "edit" | "new";
+    index?: number;
+    titulo: string;
+    conteudo: string;
+  }) => {
     if (!projectId || !materialId || !project?.materiais || !material) return;
     const db = getFirestoreDb();
     if (!db) return;
@@ -348,8 +388,19 @@ export default function MaterialStudyPage() {
   const currentCard = cards[cardIndex] ?? null;
   const minEst = estimateMin(material);
   const sessionDuration = getSessionDuration();
-  const effectiveMinutes = Math.min(sessionDuration.minutes, minEst);
-  const effectiveLabel = effectiveMinutes < sessionDuration.minutes ? `${effectiveMinutes} min` : sessionDuration.label;
+  const workMinutesFromPref =
+    typeof window !== "undefined" ? getPreferences().pomodoroWorkMinutes : null;
+  const workMinutesBase = workMinutesFromPref ?? sessionDuration.minutes;
+  const effectiveMinutes = Math.min(workMinutesBase, minEst);
+  const sessionMinutes = sessionMinutesOverride ?? effectiveMinutes;
+  const effectiveLabel =
+    effectiveMinutes < workMinutesBase
+      ? `${effectiveMinutes} min`
+      : workMinutesFromPref != null
+        ? `${workMinutesBase} min`
+        : sessionDuration.label;
+  const pomodoroBreakMinutes =
+    typeof window !== "undefined" ? getPreferences().pomodoroBreakMinutes : 5;
 
   const enterModoFoco = () => {
     setPreferences({ modoFoco: true });
@@ -360,9 +411,12 @@ export default function MaterialStudyPage() {
     setModoFoco(false);
   };
 
-  const hideMenu = modoFoco && typeof window !== "undefined" && getPreferences().modoFocoEsconderMenu;
+  const hideMenu =
+    modoFoco && typeof window !== "undefined" && getPreferences().modoFocoEsconderMenu;
   const Wrapper = hideMenu
-    ? ({ children }: { children: React.ReactNode }) => <div className="min-h-screen bg-background pt-6 pb-8 px-4">{children}</div>
+    ? ({ children }: { children: React.ReactNode }) => (
+        <div className="min-h-screen bg-background pt-6 pb-8 px-4">{children}</div>
+      )
     : AppShell;
 
   return (
@@ -378,7 +432,9 @@ export default function MaterialStudyPage() {
           </Link>
         )}
 
-        <div className={`mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${modoFoco ? "mt-4" : ""}`}>
+        <div
+          className={`mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ${modoFoco ? "mt-4" : ""}`}
+        >
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">
               {material.nomeArquivo ?? "Tópico"}
@@ -401,14 +457,13 @@ export default function MaterialStudyPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <StudyTimer
-              initialMinutes={effectiveMinutes}
-              onComplete={() => {
-                if (getPreferences().pausasPomodoro) {
-                  setPomodoroBreak({ active: true, secondsLeft: 5 * 60 });
-                } else {
-                  setShowSessionReminder(true);
-                }
+              initialMinutes={sessionMinutes}
+              editable
+              onMinutesChange={(minutes) => {
+                setSessionMinutesOverride(minutes);
+                setPreferences({ pomodoroWorkMinutes: minutes });
               }}
+              onComplete={() => setShowTimerCompleteModal(true)}
             />
             {activeTab === "flashcards" && (material?.cards?.length ?? 0) > 0 && (
               <Button size="sm" onClick={handleConcluir} className="h-9 gap-1 px-3">
@@ -421,7 +476,12 @@ export default function MaterialStudyPage() {
                 Sair do modo foco
               </Button>
             ) : (
-              <Button variant="outline" size="sm" onClick={enterModoFoco} className="h-9 gap-1 px-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={enterModoFoco}
+                className="h-9 gap-1 px-3"
+              >
                 <Brain className="w-3.5 h-3.5" />
                 Modo foco
               </Button>
@@ -429,24 +489,104 @@ export default function MaterialStudyPage() {
           </div>
         </div>
 
-        {/* Pausa Pomodoro */}
+        {/* Modal: pausa Pomodoro (bloqueia o estudo até terminar ou fechar) */}
         {pomodoroBreak.active && (
-          <div className="mb-6 rounded-xl border-2 border-primary/30 bg-primary/10 p-6 text-center">
-            {pomodoroBreak.secondsLeft > 0 ? (
-              <>
-                <p className="text-sm font-medium text-foreground mb-2">Pausa de 5 min</p>
-                <p className="font-mono text-2xl font-semibold text-foreground">
-                  {String(Math.floor(pomodoroBreak.secondsLeft / 60)).padStart(2, "0")}:{String(pomodoroBreak.secondsLeft % 60).padStart(2, "0")}
-                </p>
-              </>
-            ) : (
-              <>
-                <p className="text-sm font-medium text-foreground mb-3">Pausa concluída.</p>
-                <Button onClick={() => { setPomodoroBreak({ active: false, secondsLeft: 0 }); setShowSessionReminder(true); }}>
-                  Voltar ao estudo
-                </Button>
-              </>
-            )}
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            style={{ pointerEvents: "auto" }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="pausa-title"
+          >
+            <div className="rounded-xl border-2 border-primary/30 bg-card p-8 w-full max-w-sm shadow-xl text-center">
+              <h3 id="pausa-title" className="font-display font-bold text-lg text-foreground mb-1">
+                Pausa
+              </h3>
+              {pomodoroBreak.secondsLeft > 0 ? (
+                <>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Pausa de {pomodoroBreakMinutes} min — descanse um pouco.
+                  </p>
+                  <p className="font-mono text-4xl font-semibold text-foreground tabular-nums">
+                    {String(Math.floor(pomodoroBreak.secondsLeft / 60)).padStart(2, "0")}:
+                    {String(pomodoroBreak.secondsLeft % 60).padStart(2, "0")}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-4">
+                    Aguarde o fim da pausa para voltar ao estudo.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-foreground mb-4">Pausa concluída.</p>
+                  <Button
+                    onClick={() => {
+                      setPomodoroBreak({ active: false, secondsLeft: 0 });
+                      setShowSessionReminder(true);
+                    }}
+                  >
+                    Voltar ao estudo
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Modal: timer encerrado */}
+        {showTimerCompleteModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={(e) => e.target === e.currentTarget && setShowTimerCompleteModal(false)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl text-center"
+              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="timer-complete-title"
+            >
+              <h3
+                id="timer-complete-title"
+                className="font-display font-bold text-lg text-foreground mb-2"
+              >
+                Sessão concluída
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                O tempo de foco acabou. Que tal uma pausa antes de continuar?
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                {getPreferences().pausasPomodoro ? (
+                  <>
+                    <Button
+                      onClick={() => {
+                        setPomodoroBreak({ active: true, secondsLeft: pomodoroBreakMinutes * 60 });
+                        setShowTimerCompleteModal(false);
+                      }}
+                    >
+                      Iniciar pausa ({pomodoroBreakMinutes} min)
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowSessionReminder(true);
+                        setShowTimerCompleteModal(false);
+                      }}
+                    >
+                      Agora não
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => {
+                      setShowSessionReminder(true);
+                      setShowTimerCompleteModal(false);
+                    }}
+                  >
+                    OK
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
         )}
 
@@ -458,7 +598,8 @@ export default function MaterialStudyPage() {
               <div>
                 <p className="font-medium text-foreground">Revisão programada</p>
                 <p className="text-sm text-muted-foreground">
-                  Depois de estudar, marque como revisado para agendar a próxima (repetição espaçada).
+                  Depois de estudar, marque como revisado para agendar a próxima (repetição
+                  espaçada).
                 </p>
               </div>
             </div>
@@ -483,134 +624,144 @@ export default function MaterialStudyPage() {
 
         {/* Resumo - oculto no modo foco */}
         {!modoFoco && (
-        <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6 mb-8 relative">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Resumo
-            </h2>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
-              onClick={() => {
-                setEditResumoValue(getDisplayResumo(material, getPreferences().nivelResumo) || "");
-                setEditResumoOpen(true);
-              }}
-            >
-              <Pencil className="w-4 h-4" />
-            </Button>
+          <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6 mb-8 relative">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+                Resumo
+              </h2>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setEditResumoValue(
+                    getDisplayResumo(material, getPreferences().nivelResumo) || ""
+                  );
+                  setEditResumoOpen(true);
+                }}
+              >
+                <Pencil className="w-4 h-4" />
+              </Button>
+            </div>
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+              {getDisplayResumo(material, getPreferences().nivelResumo) || "Sem resumo."}
+            </p>
           </div>
-          <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-            {getDisplayResumo(material, getPreferences().nivelResumo) || "Sem resumo."}
-          </p>
-        </div>
         )}
 
         {/* Tabs: Flashcards | Quiz | Chat IA | Minhas questões - ocultas no modo foco */}
         {!modoFoco && (
-        <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-muted/50 mb-6 md:flex md:flex-row">
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "flashcards"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("flashcards")}
-          >
-            <Layers className="w-4 h-4 shrink-0" />
-            <span className="md:hidden">Cards</span>
-            <span className="hidden md:inline">Flashcards</span>
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "quiz" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("quiz")}
-          >
-            <HelpCircle className="w-4 h-4 shrink-0" />
-            Quiz
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "chat" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("chat")}
-          >
-            <MessageCircle className="w-4 h-4 shrink-0" />
-            <span className="md:hidden">Chat</span>
-            <span className="hidden md:inline">Chat IA</span>
-          </button>
-          <button
-            type="button"
-            className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
-              activeTab === "minhas_questoes"
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setActiveTab("minhas_questoes")}
-          >
-            <FileQuestion className="w-4 h-4 shrink-0" />
-            <span className="md:hidden">Editar cards</span>
-            <span className="hidden md:inline">Minhas flashcards</span>
-          </button>
-        </div>
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-lg bg-muted/50 mb-6 md:flex md:flex-row">
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "flashcards"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("flashcards")}
+            >
+              <Layers className="w-4 h-4 shrink-0" />
+              <span className="md:hidden">Cards</span>
+              <span className="hidden md:inline">Flashcards</span>
+            </button>
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "quiz"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("quiz")}
+            >
+              <HelpCircle className="w-4 h-4 shrink-0" />
+              Quiz
+            </button>
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "chat"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("chat")}
+            >
+              <MessageCircle className="w-4 h-4 shrink-0" />
+              <span className="md:hidden">Chat</span>
+              <span className="hidden md:inline">Chat IA</span>
+            </button>
+            <button
+              type="button"
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-md text-xs font-medium transition-colors md:justify-start md:gap-2 md:px-4 md:text-sm ${
+                activeTab === "minhas_questoes"
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              onClick={() => setActiveTab("minhas_questoes")}
+            >
+              <FileQuestion className="w-4 h-4 shrink-0" />
+              <span className="md:hidden">Editar cards</span>
+              <span className="hidden md:inline">Minhas flashcards</span>
+            </button>
+          </div>
         )}
 
         {/* Conteúdo: Flashcards | Quiz | Chat | Minhas questões */}
         <div ref={tabContentRef}>
-        {activeTab === "quiz" ? (
-          <div className="space-y-6 mb-8">
-            <StudyQuizPanel
-              cards={cards}
-              emptyText="Nenhum card para quiz. Adicione ou edite flashcards na aba Minhas flashcards."
+          {activeTab === "quiz" ? (
+            <div className="space-y-6 mb-8">
+              <StudyQuizPanel
+                cards={cards}
+                emptyText="Nenhum card para quiz. Adicione ou edite flashcards na aba Minhas flashcards."
+              />
+            </div>
+          ) : activeTab === "chat" ? (
+            <StudyChat
+              headerText="Pergunte sobre o conteúdo do tópico. A IA usa o resumo como contexto."
+              buildContext={() =>
+                (getDisplayResumo(material, getPreferences().nivelResumo) || material.resumo) ?? ""
+              }
             />
-          </div>
-        ) : activeTab === "chat" ? (
-          <StudyChat
-            headerText="Pergunte sobre o conteúdo do tópico. A IA usa o resumo como contexto."
-            buildContext={() =>
-              (getDisplayResumo(material, getPreferences().nivelResumo) || material.resumo) ?? ""
-            }
-          />
-        ) : activeTab === "minhas_questoes" ? (
-          <MaterialFlashcardEditor
-            cards={cards}
-            saving={saving}
-            onSaveCard={handleSaveCard}
-            onDeleteCard={handleDeleteCard}
-          />
-        ) : cards.length === 0 ? (
-          <div className="rounded-xl border bg-card p-8 text-center">
-            <p className="text-muted-foreground mb-4">
-              Nenhum card neste tópico.
-            </p>
-            <Button onClick={handleConcluir}>
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Concluir tópico
-            </Button>
-          </div>
-        ) : (
-          <>
-            <FlashcardCarousel
+          ) : activeTab === "minhas_questoes" ? (
+            <MaterialFlashcardEditor
               cards={cards}
-              cardIndex={cardIndex}
-              onCardIndexChange={setCardIndex}
-              flipped={flipped}
-              onFlippedChange={setFlipped}
-              mode="material"
+              saving={saving}
+              onSaveCard={handleSaveCard}
+              onDeleteCard={handleDeleteCard}
             />
-          </>
-        )}
+          ) : cards.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center">
+              <p className="text-muted-foreground mb-4">Nenhum card neste tópico.</p>
+              <Button onClick={handleConcluir}>
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Concluir tópico
+              </Button>
+            </div>
+          ) : (
+            <>
+              <FlashcardCarousel
+                cards={cards}
+                cardIndex={cardIndex}
+                onCardIndexChange={setCardIndex}
+                flipped={flipped}
+                onFlippedChange={setFlipped}
+                mode="material"
+              />
+            </>
+          )}
         </div>
 
         {/* Modal: Editar resumo */}
         {editResumoOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setEditResumoOpen(false)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setEditResumoOpen(false)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-2xl shadow-xl max-h-[90vh] overflow-hidden flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-3">Editar resumo</h3>
               <textarea
                 value={editResumoValue}
@@ -619,13 +770,21 @@ export default function MaterialStudyPage() {
                 className="min-h-[280px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 mb-4 resize-y"
               />
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setEditResumoOpen(false)}>Cancelar</Button>
-                <Button disabled={saving} onClick={handleSaveResumo}>{saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setEditResumoOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button disabled={saving} onClick={handleSaveResumo}>
+                  {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
+                </Button>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </Wrapper>
   );

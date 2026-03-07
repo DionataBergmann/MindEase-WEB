@@ -4,13 +4,13 @@ import OpenAI from "openai";
 export async function POST(request: NextRequest) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
-    return NextResponse.json(
-      { error: "OPENAI_API_KEY não configurada." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "OPENAI_API_KEY não configurada." }, { status: 500 });
   }
 
-  let body: { messages?: { role: "user" | "assistant" | "system"; content: string }[]; context?: string };
+  let body: {
+    messages?: { role: "user" | "assistant" | "system"; content: string }[];
+    context?: string;
+  };
   try {
     body = await request.json();
   } catch {

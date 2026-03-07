@@ -29,7 +29,9 @@ export function StudyChat({ headerText, buildContext }: StudyChatProps) {
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[85%] rounded-lg px-4 py-2 text-sm ${
-                m.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
+                m.role === "user"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-foreground"
               }`}
             >
               <p className="whitespace-pre-wrap">{m.content}</p>
@@ -38,9 +40,7 @@ export function StudyChat({ headerText, buildContext }: StudyChatProps) {
         ))}
         {chatLoading && (
           <div className="flex justify-start">
-            <div className="bg-muted rounded-lg px-4 py-2 text-sm text-muted-foreground">
-              ...
-            </div>
+            <div className="bg-muted rounded-lg px-4 py-2 text-sm text-muted-foreground">...</div>
           </div>
         )}
       </div>
@@ -65,7 +65,10 @@ export function StudyChat({ headerText, buildContext }: StudyChatProps) {
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error ?? "Erro ao enviar mensagem.");
-            setChatMessages((prev) => [...prev, { role: "assistant", content: data.message ?? "" }]);
+            setChatMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: data.message ?? "" },
+            ]);
           } catch (err) {
             setChatMessages((prev) => [
               ...prev,
@@ -93,4 +96,3 @@ export function StudyChat({ headerText, buildContext }: StudyChatProps) {
     </div>
   );
 }
-

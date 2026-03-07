@@ -18,7 +18,10 @@ export function getUserPreferences(storage: IPreferencesStorage): UserPreference
 /**
  * Caso de uso: salvar preferências (parcial) e retornar o estado atual.
  */
-export function setUserPreferences(storage: IPreferencesStorage, partial: Partial<UserPreferences>): UserPreferences {
+export function setUserPreferences(
+  storage: IPreferencesStorage,
+  partial: Partial<UserPreferences>
+): UserPreferences {
   return storage.set(partial);
 }
 
@@ -28,7 +31,10 @@ export function getPreferredStudyTab(storage: IPreferencesStorage): StudyTab {
 }
 
 /** Retorna duração de sessão em minutos e label (usa preferências do storage). */
-export function getSessionDuration(storage: IPreferencesStorage): { minutes: number; label: string } {
+export function getSessionDuration(storage: IPreferencesStorage): {
+  minutes: number;
+  label: string;
+} {
   return domainGetSessionDuration(storage.get());
 }
 

@@ -4,8 +4,28 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Clock, Loader2, Plus, BookMarked, CheckCircle, MoreVertical, Pencil, Trash2, FileQuestion, Upload, GripVertical } from "lucide-react";
-import { doc, getDoc, updateDoc, deleteDoc, serverTimestamp, type Timestamp } from "firebase/firestore";
+import {
+  ArrowLeft,
+  Clock,
+  Loader2,
+  Plus,
+  BookMarked,
+  CheckCircle,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  FileQuestion,
+  Upload,
+  GripVertical,
+} from "lucide-react";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  type Timestamp,
+} from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { AppShell } from "@/components/organisms";
 import { Button, Input } from "@/components/atoms";
@@ -41,10 +61,17 @@ export default function ProjectPage() {
   const [showDeleteProject, setShowDeleteProject] = useState(false);
   const [editMaterial, setEditMaterial] = useState<{ projectId: string; m: Material } | null>(null);
   const [editMaterialName, setEditMaterialName] = useState("");
-  const [deleteMaterial, setDeleteMaterial] = useState<{ projectId: string; materialId: string } | null>(null);
+  const [deleteMaterial, setDeleteMaterial] = useState<{
+    projectId: string;
+    materialId: string;
+  } | null>(null);
   const [materialMenuOpenId, setMaterialMenuOpenId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [transitionModal, setTransitionModal] = useState<{ open: boolean; href: string; message: string }>({ open: false, href: "", message: "" });
+  const [transitionModal, setTransitionModal] = useState<{
+    open: boolean;
+    href: string;
+    message: string;
+  }>({ open: false, href: "", message: "" });
   const [showNewTaskModal, setShowNewTaskModal] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -92,6 +119,7 @@ export default function ProjectPage() {
           materiais: data.materiais ?? undefined,
           resumo: data.resumo,
           cards: data.cards ?? [],
+          checklist: data.checklist ?? undefined,
           createdAt: data.createdAt,
         });
       } catch {
@@ -107,8 +135,10 @@ export default function ProjectPage() {
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       const target = e.target as Node;
-      if (projectMenuRef.current && !projectMenuRef.current.contains(target)) setProjectMenuOpen(false);
-      if (materialMenuRef.current && !materialMenuRef.current.contains(target)) setMaterialMenuOpenId(null);
+      if (projectMenuRef.current && !projectMenuRef.current.contains(target))
+        setProjectMenuOpen(false);
+      if (materialMenuRef.current && !materialMenuRef.current.contains(target))
+        setMaterialMenuOpenId(null);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -172,14 +202,17 @@ export default function ProjectPage() {
     try {
       const updated = (project.materiais ?? []).filter((m) => m.id !== deleteMaterial.materialId);
       const completedCount = updated.filter((m) => (m.status ?? "pending") === "completed").length;
-      const progress = updated.length === 0 ? 0 : Math.round((completedCount / updated.length) * 100);
+      const progress =
+        updated.length === 0 ? 0 : Math.round((completedCount / updated.length) * 100);
       await updateDoc(doc(db, "projects", project.id), {
         materiais: updated,
         pdfCount: updated.length,
         progress,
         updatedAt: serverTimestamp(),
       });
-      setProject((p) => (p ? { ...p, materiais: updated, pdfCount: updated.length, progress } : null));
+      setProject((p) =>
+        p ? { ...p, materiais: updated, pdfCount: updated.length, progress } : null
+      );
       setDeleteMaterial(null);
     } finally {
       setSaving(false);
@@ -217,7 +250,9 @@ export default function ProjectPage() {
         updatedAt: serverTimestamp(),
       });
     } catch {
-      setProject((p) => (p ? { ...p, materiais: project.materiais, progress: project.progress } : null));
+      setProject((p) =>
+        p ? { ...p, materiais: project.materiais, progress: project.progress } : null
+      );
     }
   };
 
@@ -327,7 +362,8 @@ export default function ProjectPage() {
                   {project.title}
                 </h1>
                 <p className="text-muted-foreground mt-0.5">
-                  {materials.length} tópico{materials.length !== 1 ? "s" : ""} · {totalConcluidos} concluído{totalConcluidos !== 1 ? "s" : ""}
+                  {materials.length} tópico{materials.length !== 1 ? "s" : ""} · {totalConcluidos}{" "}
+                  concluído{totalConcluidos !== 1 ? "s" : ""}
                 </p>
               </div>
             </div>
@@ -387,11 +423,13 @@ export default function ProjectPage() {
               {getPreferences().avisoTransicao ? (
                 <Button
                   size="sm"
-                  onClick={() => setTransitionModal({
-                    open: true,
-                    href: `/project/${project.id}/estudar`,
-                    message: `Você vai para "Estudar: ${project.title}". Pronto para continuar?`,
-                  })}
+                  onClick={() =>
+                    setTransitionModal({
+                      open: true,
+                      href: `/project/${project.id}/estudar`,
+                      message: `Você vai para "Estudar: ${project.title}". Pronto para continuar?`,
+                    })
+                  }
                 >
                   <BookMarked className="w-4 h-4 mr-2" />
                   Estudar todos
@@ -410,109 +448,146 @@ export default function ProjectPage() {
           {/* Tópicos: Kanban Para estudar | Em progresso | Concluído */}
           <div className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              Arraste os cards entre as colunas ou clique para estudar. Use o menu ⋮ para editar ou excluir.
+              Arraste os cards entre as colunas ou clique para estudar. Use o menu ⋮ para editar ou
+              excluir.
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Column
-              title="Para estudar"
-              status="pending"
-              count={paraEstudar.length}
-              materials={paraEstudar}
-              projectId={project.id}
-              estimateMin={estimateMin}
-              draggingId={draggingId}
-              getDraggingMaterialId={() => draggingMaterialIdRef.current}
-              onDragStart={(mid) => {
-                draggingMaterialIdRef.current = mid;
-                setTimeout(() => {
-                  setDraggingId(mid);
-                  if (typeof document !== "undefined") document.body.classList.add("is-dragging-kanban");
-                }, 0);
-              }}
-              onDragEnd={() => {
-                setDraggingId(null);
-                draggingMaterialIdRef.current = null;
-                if (typeof document !== "undefined") document.body.classList.remove("is-dragging-kanban");
-              }}
-              onDrop={(mid) => handleMoveMaterial(mid, "pending")}
-              openMenuId={materialMenuOpenId}
-              onOpenMenu={setMaterialMenuOpenId}
-              menuRef={materialMenuRef}
-              onEditMaterial={(m) => { setEditMaterial({ projectId: project.id, m }); setEditMaterialName(m.nomeArquivo ?? ""); }}
-              onDeleteMaterial={(m) => setDeleteMaterial({ projectId: project.id, materialId: m.id })}
-              onStudyClick={getPreferences().avisoTransicao ? (m) => setTransitionModal({
-                open: true,
-                href: `/project/${project.id}/material/${m.id}`,
-                message: `Você vai estudar "${m.nomeArquivo ?? "tópico"}". Pronto para continuar?`,
-              }) : undefined}
-            />
-            <Column
-              title="Em progresso"
-              status="in_progress"
-              count={emProgresso.length}
-              materials={emProgresso}
-              projectId={project.id}
-              estimateMin={estimateMin}
-              draggingId={draggingId}
-              getDraggingMaterialId={() => draggingMaterialIdRef.current}
-              onDragStart={(mid) => {
-                draggingMaterialIdRef.current = mid;
-                setTimeout(() => {
-                  setDraggingId(mid);
-                  if (typeof document !== "undefined") document.body.classList.add("is-dragging-kanban");
-                }, 0);
-              }}
-              onDragEnd={() => {
-                setDraggingId(null);
-                draggingMaterialIdRef.current = null;
-                if (typeof document !== "undefined") document.body.classList.remove("is-dragging-kanban");
-              }}
-              onDrop={(mid) => handleMoveMaterial(mid, "in_progress")}
-              openMenuId={materialMenuOpenId}
-              onOpenMenu={setMaterialMenuOpenId}
-              menuRef={materialMenuRef}
-              onEditMaterial={(m) => { setEditMaterial({ projectId: project.id, m }); setEditMaterialName(m.nomeArquivo ?? ""); }}
-              onDeleteMaterial={(m) => setDeleteMaterial({ projectId: project.id, materialId: m.id })}
-              onStudyClick={getPreferences().avisoTransicao ? (m) => setTransitionModal({
-                open: true,
-                href: `/project/${project.id}/material/${m.id}`,
-                message: `Você vai estudar "${m.nomeArquivo ?? "tópico"}". Pronto para continuar?`,
-              }) : undefined}
-            />
-            <Column
-              title="Concluído"
-              status="completed"
-              count={concluidos.length}
-              materials={concluidos}
-              projectId={project.id}
-              estimateMin={estimateMin}
-              isCompleted
-              draggingId={draggingId}
-              getDraggingMaterialId={() => draggingMaterialIdRef.current}
-              onDragStart={(mid) => {
-                draggingMaterialIdRef.current = mid;
-                setTimeout(() => {
-                  setDraggingId(mid);
-                  if (typeof document !== "undefined") document.body.classList.add("is-dragging-kanban");
-                }, 0);
-              }}
-              onDragEnd={() => {
-                setDraggingId(null);
-                draggingMaterialIdRef.current = null;
-                if (typeof document !== "undefined") document.body.classList.remove("is-dragging-kanban");
-              }}
-              onDrop={(mid) => handleMoveMaterial(mid, "completed")}
-              openMenuId={materialMenuOpenId}
-              onOpenMenu={setMaterialMenuOpenId}
-              menuRef={materialMenuRef}
-              onEditMaterial={(m) => { setEditMaterial({ projectId: project.id, m }); setEditMaterialName(m.nomeArquivo ?? ""); }}
-              onDeleteMaterial={(m) => setDeleteMaterial({ projectId: project.id, materialId: m.id })}
-              onStudyClick={getPreferences().avisoTransicao ? (m) => setTransitionModal({
-                open: true,
-                href: `/project/${project.id}/material/${m.id}`,
-                message: `Você vai estudar "${m.nomeArquivo ?? "tópico"}". Pronto para continuar?`,
-              }) : undefined}
-            />
+              <Column
+                title="Para estudar"
+                status="pending"
+                count={paraEstudar.length}
+                materials={paraEstudar}
+                projectId={project.id}
+                estimateMin={estimateMin}
+                draggingId={draggingId}
+                getDraggingMaterialId={() => draggingMaterialIdRef.current}
+                onDragStart={(mid) => {
+                  draggingMaterialIdRef.current = mid;
+                  setTimeout(() => {
+                    setDraggingId(mid);
+                    if (typeof document !== "undefined")
+                      document.body.classList.add("is-dragging-kanban");
+                  }, 0);
+                }}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  draggingMaterialIdRef.current = null;
+                  if (typeof document !== "undefined")
+                    document.body.classList.remove("is-dragging-kanban");
+                }}
+                onDrop={(mid) => handleMoveMaterial(mid, "pending")}
+                openMenuId={materialMenuOpenId}
+                onOpenMenu={setMaterialMenuOpenId}
+                menuRef={materialMenuRef}
+                onEditMaterial={(m) => {
+                  setEditMaterial({ projectId: project.id, m });
+                  setEditMaterialName(m.nomeArquivo ?? "");
+                }}
+                onDeleteMaterial={(m) =>
+                  setDeleteMaterial({ projectId: project.id, materialId: m.id })
+                }
+                onStudyClick={
+                  getPreferences().avisoTransicao
+                    ? (m) =>
+                        setTransitionModal({
+                          open: true,
+                          href: `/project/${project.id}/material/${m.id}`,
+                          message: `Você vai estudar "${m.nomeArquivo ?? "tópico"}". Pronto para continuar?`,
+                        })
+                    : undefined
+                }
+              />
+              <Column
+                title="Em progresso"
+                status="in_progress"
+                count={emProgresso.length}
+                materials={emProgresso}
+                projectId={project.id}
+                estimateMin={estimateMin}
+                draggingId={draggingId}
+                getDraggingMaterialId={() => draggingMaterialIdRef.current}
+                onDragStart={(mid) => {
+                  draggingMaterialIdRef.current = mid;
+                  setTimeout(() => {
+                    setDraggingId(mid);
+                    if (typeof document !== "undefined")
+                      document.body.classList.add("is-dragging-kanban");
+                  }, 0);
+                }}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  draggingMaterialIdRef.current = null;
+                  if (typeof document !== "undefined")
+                    document.body.classList.remove("is-dragging-kanban");
+                }}
+                onDrop={(mid) => handleMoveMaterial(mid, "in_progress")}
+                openMenuId={materialMenuOpenId}
+                onOpenMenu={setMaterialMenuOpenId}
+                menuRef={materialMenuRef}
+                onEditMaterial={(m) => {
+                  setEditMaterial({ projectId: project.id, m });
+                  setEditMaterialName(m.nomeArquivo ?? "");
+                }}
+                onDeleteMaterial={(m) =>
+                  setDeleteMaterial({ projectId: project.id, materialId: m.id })
+                }
+                onStudyClick={
+                  getPreferences().avisoTransicao
+                    ? (m) =>
+                        setTransitionModal({
+                          open: true,
+                          href: `/project/${project.id}/material/${m.id}`,
+                          message: `Você vai estudar "${m.nomeArquivo ?? "tópico"}". Pronto para continuar?`,
+                        })
+                    : undefined
+                }
+              />
+              <Column
+                title="Concluído"
+                status="completed"
+                count={concluidos.length}
+                materials={concluidos}
+                projectId={project.id}
+                estimateMin={estimateMin}
+                isCompleted
+                draggingId={draggingId}
+                getDraggingMaterialId={() => draggingMaterialIdRef.current}
+                onDragStart={(mid) => {
+                  draggingMaterialIdRef.current = mid;
+                  setTimeout(() => {
+                    setDraggingId(mid);
+                    if (typeof document !== "undefined")
+                      document.body.classList.add("is-dragging-kanban");
+                  }, 0);
+                }}
+                onDragEnd={() => {
+                  setDraggingId(null);
+                  draggingMaterialIdRef.current = null;
+                  if (typeof document !== "undefined")
+                    document.body.classList.remove("is-dragging-kanban");
+                }}
+                onDrop={(mid) => handleMoveMaterial(mid, "completed")}
+                openMenuId={materialMenuOpenId}
+                onOpenMenu={setMaterialMenuOpenId}
+                menuRef={materialMenuRef}
+                onEditMaterial={(m) => {
+                  setEditMaterial({ projectId: project.id, m });
+                  setEditMaterialName(m.nomeArquivo ?? "");
+                }}
+                onDeleteMaterial={(m) =>
+                  setDeleteMaterial({ projectId: project.id, materialId: m.id })
+                }
+                onStudyClick={
+                  getPreferences().avisoTransicao
+                    ? (m) =>
+                        setTransitionModal({
+                          open: true,
+                          href: `/project/${project.id}/material/${m.id}`,
+                          message: `Você vai estudar "${m.nomeArquivo ?? "tópico"}". Pronto para continuar?`,
+                        })
+                    : undefined
+                }
+              />
             </div>
           </div>
 
@@ -530,8 +605,14 @@ export default function ProjectPage() {
 
         {/* Modal: Editar nome do projeto */}
         {showEditProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setShowEditProject(false)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setShowEditProject(false)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-3">Editar projeto</h3>
               <Input
                 value={editProjectTitle}
@@ -540,8 +621,18 @@ export default function ProjectPage() {
                 className="mb-4"
               />
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setShowEditProject(false)}>Cancelar</Button>
-                <Button disabled={saving || !editProjectTitle.trim()} onClick={handleSaveProjectTitle}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setShowEditProject(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  disabled={saving || !editProjectTitle.trim()}
+                  onClick={handleSaveProjectTitle}
+                >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
                 </Button>
               </div>
@@ -551,10 +642,18 @@ export default function ProjectPage() {
 
         {/* Modal: Nova tarefa */}
         {showNewTaskModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setShowNewTaskModal(false)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setShowNewTaskModal(false)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-3">Nova tarefa</h3>
-              <p className="text-sm text-muted-foreground mb-3">Tarefa ou tópico sem PDF. Você pode adicionar um PDF depois ou usar como lembrete.</p>
+              <p className="text-sm text-muted-foreground mb-3">
+                Tarefa ou tópico sem PDF. Você pode adicionar um PDF depois ou usar como lembrete.
+              </p>
               <Input
                 value={newTaskTitle}
                 onChange={(e) => setNewTaskTitle(e.target.value)}
@@ -563,7 +662,17 @@ export default function ProjectPage() {
                 onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
               />
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => { setShowNewTaskModal(false); setNewTaskTitle(""); }}>Cancelar</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => {
+                    setShowNewTaskModal(false);
+                    setNewTaskTitle("");
+                  }}
+                >
+                  Cancelar
+                </Button>
                 <Button disabled={saving || !newTaskTitle.trim()} onClick={handleAddTask}>
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Criar"}
                 </Button>
@@ -574,14 +683,29 @@ export default function ProjectPage() {
 
         {/* Modal: Aviso de transição (ir estudar) */}
         {transitionModal.open && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => setTransitionModal((t) => ({ ...t, open: false }))}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => setTransitionModal((t) => ({ ...t, open: false }))}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <p className="text-foreground mb-4">{transitionModal.message}</p>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setTransitionModal((t) => ({ ...t, open: false }))}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setTransitionModal((t) => ({ ...t, open: false }))}
+                >
                   Voltar
                 </Button>
-                <Button onClick={() => { router.push(transitionModal.href); setTransitionModal((t) => ({ ...t, open: false })); }}>
+                <Button
+                  onClick={() => {
+                    router.push(transitionModal.href);
+                    setTransitionModal((t) => ({ ...t, open: false }));
+                  }}
+                >
                   Continuar
                 </Button>
               </div>
@@ -591,12 +715,27 @@ export default function ProjectPage() {
 
         {/* Modal: Excluir projeto */}
         {showDeleteProject && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setShowDeleteProject(false)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setShowDeleteProject(false)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-2">Excluir projeto?</h3>
-              <p className="text-muted-foreground text-sm mb-4">Esta ação não pode ser desfeita. Todos os materiais e cards serão removidos.</p>
+              <p className="text-muted-foreground text-sm mb-4">
+                Esta ação não pode ser desfeita. Todos os materiais e cards serão removidos.
+              </p>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setShowDeleteProject(false)}>Cancelar</Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setShowDeleteProject(false)}
+                >
+                  Cancelar
+                </Button>
                 <Button variant="destructive" disabled={saving} onClick={handleDeleteProject}>
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir"}
                 </Button>
@@ -607,8 +746,14 @@ export default function ProjectPage() {
 
         {/* Modal: Editar nome do PDF/material */}
         {editMaterial && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setEditMaterial(null)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setEditMaterial(null)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-3">Editar nome do tópico</h3>
               <Input
                 value={editMaterialName}
@@ -617,8 +762,18 @@ export default function ProjectPage() {
                 className="mb-4"
               />
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setEditMaterial(null)}>Cancelar</Button>
-                <Button disabled={saving || !editMaterialName.trim()} onClick={handleSaveMaterialName}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setEditMaterial(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  disabled={saving || !editMaterialName.trim()}
+                  onClick={handleSaveMaterialName}
+                >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Salvar"}
                 </Button>
               </div>
@@ -628,13 +783,32 @@ export default function ProjectPage() {
 
         {/* Modal: Excluir PDF/material */}
         {deleteMaterial && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={() => !saving && setDeleteMaterial(null)}>
-            <div className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+            onClick={() => !saving && setDeleteMaterial(null)}
+          >
+            <div
+              className="rounded-xl border bg-card p-6 w-full max-w-sm shadow-xl"
+              onClick={(e) => e.stopPropagation()}
+            >
               <h3 className="font-display font-bold text-lg mb-2">Excluir este tópico?</h3>
-              <p className="text-muted-foreground text-sm mb-4">O PDF e os cards deste tópico serão removidos do projeto.</p>
+              <p className="text-muted-foreground text-sm mb-4">
+                O PDF e os cards deste tópico serão removidos do projeto.
+              </p>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" disabled={saving} onClick={() => setDeleteMaterial(null)}>Cancelar</Button>
-                <Button variant="destructive" disabled={saving} onClick={handleDeleteMaterialConfirm}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={saving}
+                  onClick={() => setDeleteMaterial(null)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={saving}
+                  onClick={handleDeleteMaterialConfirm}
+                >
                   {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : "Excluir"}
                 </Button>
               </div>
@@ -693,7 +867,10 @@ function Column({
   };
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const id = getDraggingMaterialId?.() ?? e.dataTransfer.getData("materialId") ?? e.dataTransfer.getData("text/plain");
+    const id =
+      getDraggingMaterialId?.() ??
+      e.dataTransfer.getData("materialId") ??
+      e.dataTransfer.getData("text/plain");
     if (id && onDrop) onDrop(id);
   };
 
@@ -706,166 +883,193 @@ function Column({
       >
         {title} {count > 0 && <span className="text-foreground">({count})</span>}
       </h2>
-      <div
-        className="space-y-2 min-h-[80px]"
-        onDragOver={handleDragOver}
-        onDrop={handleDrop}
-      >
+      <div className="space-y-2 min-h-[80px]" onDragOver={handleDragOver} onDrop={handleDrop}>
         {materials.length === 0 ? (
           <p className="text-xs text-muted-foreground py-4 px-2">Arraste um tópico aqui</p>
-        ) : materials.map((m, i) => {
-          const noContent = hasNoContent(m);
-          return (
-            <div
-            key={m.id}
-            data-kanban-card
-            className={`relative rounded-lg border p-4 pl-3 transition-all text-left group flex items-start gap-2 ${noContent ? "border-dashed border-muted-foreground/40 bg-muted/30 hover:border-primary/40 hover:bg-primary/5" : "border bg-card hover:border-primary/30 hover:bg-primary/5"} ${draggingId === m.id ? "opacity-50" : ""}`}
-            ref={openMenuId === m.id ? menuRef : undefined}
-            onDragOver={(e) => {
-              e.preventDefault();
-              e.dataTransfer.dropEffect = "move";
-            }}
-            onDrop={(e) => {
-              e.preventDefault();
-              const id = getDraggingMaterialId?.() ?? e.dataTransfer.getData("materialId") ?? e.dataTransfer.getData("text/plain");
-              if (id && onDrop) onDrop(id);
-            }}
-          >
-            <span
-              data-drag-handle
-              draggable
-              onDragStart={(e) => {
-                e.dataTransfer.setData("materialId", m.id);
-                e.dataTransfer.setData("text/plain", m.id);
-                e.dataTransfer.effectAllowed = "move";
-                const card = (e.currentTarget as HTMLElement).closest("[data-kanban-card]");
-                if (card) e.dataTransfer.setDragImage(card as HTMLElement, 0, 0);
-                onDragStart?.(m.id);
-              }}
-              onDragEnd={() => onDragEnd?.()}
-              className="mt-0.5 shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-muted-foreground hover:text-foreground"
-              aria-label="Arrastar"
-            >
-              <GripVertical className="w-4 h-4" />
-            </span>
-            <div
-              className="flex-1 min-w-0"
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.dataTransfer.dropEffect = "move";
-              }}
-              onDrop={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                const id = getDraggingMaterialId?.() ?? e.dataTransfer.getData("materialId") ?? e.dataTransfer.getData("text/plain");
-                if (id && onDrop) onDrop(id);
-              }}
-            >
-            {noContent ? (
-              <Link href={`/project/${projectId}/add-pdf?materialId=${m.id}`} className="block pr-8 cursor-pointer" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const id = getDraggingMaterialId?.() ?? e.dataTransfer.getData("materialId") ?? e.dataTransfer.getData("text/plain"); if (id && onDrop) onDrop(id); }}>
-                <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-medium px-2 py-0.5 mb-2">
-                  <FileQuestion className="w-3 h-3" />
-                  Sem PDF
-                </span>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-medium text-foreground truncate flex-1">
-                    {m.nomeArquivo ?? `Tarefa ${i + 1}`}
-                  </span>
-                  {isCompleted && (
-                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Upload className="w-3 h-3" />
-                  Clique para adicionar PDF
-                </p>
-              </Link>
-            ) : onStudyClick ? (
-              <button
-                type="button"
-                onClick={() => onStudyClick(m)}
-                className="block w-full text-left pr-8 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => { e.preventDefault(); const id = getDraggingMaterialId?.() ?? e.dataTransfer.getData("materialId") ?? e.dataTransfer.getData("text/plain"); if (id && onDrop) onDrop(id); }}
+        ) : (
+          materials.map((m, i) => {
+            const noContent = hasNoContent(m);
+            return (
+              <div
+                key={m.id}
+                data-kanban-card
+                className={`relative rounded-lg border p-4 pl-3 transition-all text-left group flex items-start gap-2 ${noContent ? "border-dashed border-muted-foreground/40 bg-muted/30 hover:border-primary/40 hover:bg-primary/5" : "border bg-card hover:border-primary/30 hover:bg-primary/5"} ${draggingId === m.id ? "opacity-50" : ""}`}
+                ref={openMenuId === m.id ? menuRef : undefined}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.dataTransfer.dropEffect = "move";
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id =
+                    getDraggingMaterialId?.() ??
+                    e.dataTransfer.getData("materialId") ??
+                    e.dataTransfer.getData("text/plain");
+                  if (id && onDrop) onDrop(id);
+                }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-medium text-foreground truncate flex-1">
-                    {m.nomeArquivo ?? `PDF ${i + 1}`}
-                  </span>
-                  {isCompleted && (
-                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  ~{estimateMin(m)} min
-                </p>
-              </button>
-            ) : (
-              <Link href={`/project/${projectId}/material/${m.id}`} className="block pr-8" onDragOver={(e) => e.preventDefault()} onDrop={(e) => { e.preventDefault(); const id = getDraggingMaterialId?.() ?? e.dataTransfer.getData("materialId") ?? e.dataTransfer.getData("text/plain"); if (id && onDrop) onDrop(id); }}>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="font-medium text-foreground truncate flex-1">
-                    {m.nomeArquivo ?? `PDF ${i + 1}`}
-                  </span>
-                  {isCompleted && (
-                    <CheckCircle className="w-4 h-4 text-success shrink-0" />
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  ~{estimateMin(m)} min
-                </p>
-              </Link>
-            )}
-            </div>
-            {onOpenMenu && onEditMaterial && onDeleteMaterial && (
-              <div className="absolute top-2 right-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => {
+                <span
+                  data-drag-handle
+                  draggable
+                  onDragStart={(e) => {
+                    e.dataTransfer.setData("materialId", m.id);
+                    e.dataTransfer.setData("text/plain", m.id);
+                    e.dataTransfer.effectAllowed = "move";
+                    const card = (e.currentTarget as HTMLElement).closest("[data-kanban-card]");
+                    if (card) e.dataTransfer.setDragImage(card as HTMLElement, 0, 0);
+                    onDragStart?.(m.id);
+                  }}
+                  onDragEnd={() => onDragEnd?.()}
+                  className="mt-0.5 shrink-0 cursor-grab active:cursor-grabbing touch-none select-none text-muted-foreground hover:text-foreground"
+                  aria-label="Arrastar"
+                >
+                  <GripVertical className="w-4 h-4" />
+                </span>
+                <div
+                  className="flex-1 min-w-0"
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = "move";
+                  }}
+                  onDrop={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    onOpenMenu(openMenuId === m.id ? null : m.id);
+                    const id =
+                      getDraggingMaterialId?.() ??
+                      e.dataTransfer.getData("materialId") ??
+                      e.dataTransfer.getData("text/plain");
+                    if (id && onDrop) onDrop(id);
                   }}
                 >
-                  <MoreVertical className="w-3.5 h-3.5" />
-                </Button>
-                {openMenuId === m.id && (
-                  <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border bg-card py-1 shadow-lg z-30">
-                    <button
-                      type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted"
-                      onClick={(e) => {
+                  {noContent ? (
+                    <Link
+                      href={`/project/${projectId}/add-pdf?materialId=${m.id}`}
+                      className="block pr-8 cursor-pointer"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
                         e.preventDefault();
-                        onEditMaterial(m);
-                        onOpenMenu(null);
+                        const id =
+                          getDraggingMaterialId?.() ??
+                          e.dataTransfer.getData("materialId") ??
+                          e.dataTransfer.getData("text/plain");
+                        if (id && onDrop) onDrop(id);
                       }}
                     >
-                      <Pencil className="w-3.5 h-3.5" />
-                      Editar nome
-                    </button>
+                      <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 text-xs font-medium px-2 py-0.5 mb-2">
+                        <FileQuestion className="w-3 h-3" />
+                        Sem PDF
+                      </span>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-medium text-foreground truncate flex-1">
+                          {m.nomeArquivo ?? `Tarefa ${i + 1}`}
+                        </span>
+                        {isCompleted && <CheckCircle className="w-4 h-4 text-success shrink-0" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Upload className="w-3 h-3" />
+                        Clique para adicionar PDF
+                      </p>
+                    </Link>
+                  ) : onStudyClick ? (
                     <button
                       type="button"
-                      className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left text-destructive hover:bg-destructive/10"
-                      onClick={(e) => {
+                      onClick={() => onStudyClick(m)}
+                      className="block w-full text-left pr-8 rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
                         e.preventDefault();
-                        onDeleteMaterial(m);
-                        onOpenMenu(null);
+                        const id =
+                          getDraggingMaterialId?.() ??
+                          e.dataTransfer.getData("materialId") ??
+                          e.dataTransfer.getData("text/plain");
+                        if (id && onDrop) onDrop(id);
                       }}
                     >
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Excluir
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-medium text-foreground truncate flex-1">
+                          {m.nomeArquivo ?? `PDF ${i + 1}`}
+                        </span>
+                        {isCompleted && <CheckCircle className="w-4 h-4 text-success shrink-0" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />~{estimateMin(m)} min
+                      </p>
                     </button>
+                  ) : (
+                    <Link
+                      href={`/project/${projectId}/material/${m.id}`}
+                      className="block pr-8"
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        const id =
+                          getDraggingMaterialId?.() ??
+                          e.dataTransfer.getData("materialId") ??
+                          e.dataTransfer.getData("text/plain");
+                        if (id && onDrop) onDrop(id);
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="font-medium text-foreground truncate flex-1">
+                          {m.nomeArquivo ?? `PDF ${i + 1}`}
+                        </span>
+                        {isCompleted && <CheckCircle className="w-4 h-4 text-success shrink-0" />}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />~{estimateMin(m)} min
+                      </p>
+                    </Link>
+                  )}
+                </div>
+                {onOpenMenu && onEditMaterial && onDeleteMaterial && (
+                  <div className="absolute top-2 right-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onOpenMenu(openMenuId === m.id ? null : m.id);
+                      }}
+                    >
+                      <MoreVertical className="w-3.5 h-3.5" />
+                    </Button>
+                    {openMenuId === m.id && (
+                      <div className="absolute right-0 top-full mt-1 w-40 rounded-lg border bg-card py-1 shadow-lg z-30">
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left hover:bg-muted"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onEditMaterial(m);
+                            onOpenMenu(null);
+                          }}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          Editar nome
+                        </button>
+                        <button
+                          type="button"
+                          className="flex w-full items-center gap-2 px-3 py-2 text-sm text-left text-destructive hover:bg-destructive/10"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            onDeleteMaterial(m);
+                            onOpenMenu(null);
+                          }}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                          Excluir
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
       {/* Camada de drop por cima de tudo; ativa só com body.is-dragging-kanban */}
       <div

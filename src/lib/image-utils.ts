@@ -78,7 +78,8 @@ function dataUrlToJpeg(dataUrl: string): Promise<string> {
         reject(e);
       }
     };
-    img.onerror = () => reject(new Error("Não foi possível processar a imagem. Tente usar JPEG ou PNG."));
+    img.onerror = () =>
+      reject(new Error("Não foi possível processar a imagem. Tente usar JPEG ou PNG."));
     img.src = dataUrl;
   });
 }

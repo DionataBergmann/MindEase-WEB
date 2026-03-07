@@ -1,0 +1,6 @@
+.next
+node_modules
+*.lock
+pnpm-lock.yaml
+yarn.lock
+src/design-tokens/*.css
