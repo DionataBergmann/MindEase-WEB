@@ -51,7 +51,11 @@ export const ProcessedResultsList = forwardRef<HTMLDivElement, ProcessedResultsL
               <p className="text-foreground leading-relaxed text-sm line-clamp-3">
                 {result.resumo}
               </p>
-              <p className="text-xs text-muted-foreground">{result.cards.length} card(s)</p>
+              <p className="text-xs text-muted-foreground">
+                {result.flashcards && result.flashcards.length > 0
+                  ? `${result.cards.length} questão(s) (quiz) · ${result.flashcards.length} flashcard(s)`
+                  : `${result.cards.length} card(s)`}
+              </p>
             </div>
           ))}
         </div>

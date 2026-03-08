@@ -5,6 +5,8 @@
 export type ProjectCard = {
   titulo: string;
   conteudo: string;
+  opcoes?: string[];
+  correctOptionIndex?: number;
   nextReviewAt?: string;
   intervalLevel?: number;
 };
@@ -31,6 +33,12 @@ export type Material = {
   resumoMedio?: string;
   resumoCompleto?: string;
   cards: ProjectCard[];
+  flashcards?: Array<{
+    titulo: string;
+    conteudo: string;
+    nextReviewAt?: string;
+    intervalLevel?: number;
+  }>;
   status?: MaterialStatus;
   nextReviewAt?: string;
   lastReviewedAt?: string;

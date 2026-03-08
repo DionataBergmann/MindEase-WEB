@@ -17,7 +17,6 @@ import {
   Trash2,
   Settings,
   X,
-  RefreshCw,
   Layers,
 } from "lucide-react";
 import { onAuthStateChanged } from "firebase/auth";
@@ -37,7 +36,7 @@ import { AppShell } from "@/components/organisms";
 import { Button, Input } from "@/components/atoms";
 import { Progress } from "@/components/ui/progress";
 import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
-import { isDueForReview, isCardDueForReview } from "@/lib/spaced-repetition";
+import { isCardDueForReview } from "@/lib/spaced-repetition";
 import type { Project, Material } from "@/types/project";
 
 function formatLastAccess(ts: Timestamp | undefined): string {
@@ -256,14 +255,14 @@ export default function HomePage() {
   }, 0);
   const topicProgress = totalTopics > 0 ? Math.round((completedTopicCount / totalTopics) * 100) : 0;
 
-  const dueForReview: { project: Project; material: Material }[] = [];
   const dueCards: { project: Project; material: Material; cardIndex: number }[] = [];
   projects.forEach((p) => {
     p.materiais?.forEach((m) => {
-      if (isDueForReview(m.nextReviewAt) && (m.cards?.length ?? 0) > 0) {
-        dueForReview.push({ project: p, material: m });
-      }
-      (m.cards ?? []).forEach((card, cardIndex) => {
+      const set =
+        m.flashcards && m.flashcards.length > 0
+          ? m.flashcards.map((f) => ({ titulo: f.titulo, conteudo: f.conteudo, nextReviewAt: f.nextReviewAt, intervalLevel: f.intervalLevel }))
+          : m.cards ?? [];
+      set.forEach((card, cardIndex) => {
         if (isCardDueForReview(card)) dueCards.push({ project: p, material: m, cardIndex });
       });
     });
@@ -370,47 +369,6 @@ export default function HomePage() {
           </motion.div>
         )}
 
-        {/* Para revisar hoje (repetição espaçada por tópico) */}
-        {!loading && dueForReview.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mb-6 rounded-xl border border-primary/20 bg-primary/5 p-5"
-          >
-            <h2 className="flex items-center gap-2 font-semibold text-foreground mb-3">
-              <RefreshCw className="w-4 h-4 text-primary" />
-              Para revisar hoje
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              {dueForReview.length} tópico{dueForReview.length !== 1 ? "s" : ""} na fila de
-              repetição espaçada.
-            </p>
-            <ul className="space-y-2">
-              {dueForReview.slice(0, 10).map(({ project, material }) => (
-                <li key={`${project.id}-${material.id}`}>
-                  <Link
-                    href={`/project/${project.id}/material/${material.id}`}
-                    className="flex items-center justify-between gap-2 rounded-lg border bg-card px-4 py-3 hover:border-primary/30 hover:bg-primary/5 transition-colors"
-                  >
-                    <span className="font-medium text-foreground truncate">
-                      {material.nomeArquivo ?? "Tópico"}
-                    </span>
-                    <span className="text-xs text-muted-foreground shrink-0">
-                      {project.emoji} {project.title}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            {dueForReview.length > 10 && (
-              <p className="text-xs text-muted-foreground mt-2">
-                e mais {dueForReview.length - 10} tópico{dueForReview.length - 10 !== 1 ? "s" : ""}{" "}
-                para revisar
-              </p>
-            )}
-          </motion.div>
-        )}
-
         {/* Search + Revisar + New Project: no mobile, busca em cima e botões um de cada lado */}
         <div className="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 mb-3">
           <div className="relative w-full sm:flex-1 sm:max-w-md">
@@ -424,13 +382,13 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:flex sm:flex-shrink-0">
             {!loading && dueCards.length > 0 && (
-              <Button asChild variant="outline" size="default" className="min-w-0">
+              <Button asChild variant="outline" size="default" className="min-w-[11rem] sm:min-w-[13rem]">
                 <Link
                   href="/review"
-                  className="inline-flex items-center justify-center gap-2 w-full"
+                  className="inline-flex items-center justify-center gap-2 w-full py-2.5"
                 >
                   <Layers className="w-4 h-4 shrink-0" />
-                  <span className="truncate">Revisar cards ({dueCards.length})</span>
+                  <span>Revisar cards ({dueCards.length})</span>
                 </Link>
               </Button>
             )}

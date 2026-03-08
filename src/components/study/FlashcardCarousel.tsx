@@ -86,7 +86,7 @@ export function FlashcardCarousel({
                 transition={flipTransition}
               >
                 <div
-                  className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
+                  className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center overflow-y-auto"
                   style={{ backfaceVisibility: "hidden" }}
                 >
                   <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
@@ -95,9 +95,18 @@ export function FlashcardCarousel({
                   <p className="font-display text-lg font-bold text-foreground">
                     {currentCard.titulo}
                   </p>
+                  {currentCard.opcoes && currentCard.opcoes.length > 0 && (
+                    <ul className="mt-4 space-y-1.5 text-foreground">
+                      {currentCard.opcoes.map((opt, i) => (
+                        <li key={i} className="text-base leading-relaxed">
+                          {opt}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div
-                  className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center"
+                  className="absolute inset-0 rounded-xl border bg-card p-8 flex flex-col justify-center overflow-y-auto"
                   style={{
                     backfaceVisibility: "hidden",
                     transform: "rotateY(180deg)",

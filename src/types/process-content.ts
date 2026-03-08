@@ -7,5 +7,11 @@ export type ProcessContentResponse = {
   resumoMedio?: string;
   /** Resumo completo: 2-3 parágrafos (opcional) */
   resumoCompleto?: string;
-  cards: Array<{ titulo: string; conteudo: string }>;
+  cards: Array<{
+    titulo: string;
+    conteudo: string;
+    opcoes?: string[];
+    correctOptionIndex?: number;
+  }>;
+  flashcards?: Array<{ titulo: string; conteudo: string }>;
 };

@@ -18,8 +18,22 @@ function shuffle<T>(arr: T[]): T[] {
 
 function buildQuizItems(cards: ProjectCard[]): QuizItem[] {
   if (cards.length === 0) return [];
-  const allAnswers = cards.map((c) => c.conteudo);
   return shuffle(cards).map((card) => {
+    if (
+      Array.isArray(card.opcoes) &&
+      card.opcoes.length > 0 &&
+      typeof card.correctOptionIndex === "number" &&
+      card.correctOptionIndex >= 0 &&
+      card.correctOptionIndex < card.opcoes.length
+    ) {
+      const correctAnswer = card.opcoes[card.correctOptionIndex];
+      return {
+        question: card.titulo,
+        correctAnswer,
+        options: card.opcoes,
+      };
+    }
+    const allAnswers = cards.map((c) => c.conteudo);
     const others = allAnswers.filter((a) => a !== card.conteudo);
     const wrong = shuffle(others).slice(0, Math.min(3, others.length));
     const options = shuffle([card.conteudo, ...wrong]);
@@ -139,14 +153,16 @@ export function StudyQuizPanel({ cards, emptyText }: StudyQuizPanelProps) {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className="rounded-xl border bg-card p-6"
+        className="rounded-xl border bg-card p-6 overflow-visible"
       >
         <p className="text-sm text-muted-foreground mb-2">
           Pergunta {quizIndex + 1} de {quizItems.length}
         </p>
-        <p className="font-display font-semibold text-lg text-foreground mb-4">
-          {currentQuiz.question}
-        </p>
+        <div className="max-h-[50vh] overflow-y-auto overflow-x-hidden mb-4 pr-1">
+          <p className="font-display font-semibold text-lg text-foreground whitespace-pre-wrap break-words">
+            {currentQuiz.question}
+          </p>
+        </div>
         <div className="space-y-2">
           {currentQuiz.options.map((opt, i) => (
             <Button

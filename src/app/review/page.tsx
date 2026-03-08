@@ -26,9 +26,15 @@ import {
   CARD_RATING_LEVEL,
   CARD_RATING_DAYS,
 } from "@/lib/spaced-repetition";
-import type { Project, Material, ProjectCard } from "@/types/project";
+import type { Project, Material } from "@/types/project";
 
-type DueCardItem = { project: Project; material: Material; cardIndex: number; card: ProjectCard };
+type DueCardItem = {
+  project: Project;
+  material: Material;
+  cardIndex: number;
+  card: { titulo: string; conteudo: string; nextReviewAt?: string; intervalLevel?: number };
+  useFlashcards: boolean;
+};
 
 export default function ReviewPage() {
   const router = useRouter();
@@ -104,8 +110,18 @@ export default function ReviewPage() {
     const out: DueCardItem[] = [];
     projects.forEach((p) => {
       p.materiais?.forEach((m) => {
-        (m.cards ?? []).forEach((card, cardIndex) => {
-          if (isCardDueForReview(card)) out.push({ project: p, material: m, cardIndex, card });
+        const useFlashcards = Boolean(m.flashcards && m.flashcards.length > 0);
+        const set = useFlashcards
+          ? (m.flashcards ?? []).map((f) => ({
+              titulo: f.titulo,
+              conteudo: f.conteudo,
+              nextReviewAt: f.nextReviewAt,
+              intervalLevel: f.intervalLevel,
+            }))
+          : (m.cards ?? []);
+        set.forEach((card, cardIndex) => {
+          if (isCardDueForReview(card))
+            out.push({ project: p, material: m, cardIndex, card, useFlashcards });
         });
       });
     });
@@ -128,13 +144,23 @@ export default function ReviewPage() {
     if (!db) return;
     const level = CARD_RATING_LEVEL[rating];
     const nextReviewAt = getNextReviewDateFromLevel(level);
-    const { project, material, cardIndex } = current;
-    const updatedCards = (material.cards ?? []).map((c, i) =>
-      i === cardIndex ? { ...c, nextReviewAt, intervalLevel: level } : c
-    );
-    const updatedMateriais = (project.materiais ?? []).map((m) =>
-      m.id === material.id ? { ...m, cards: updatedCards } : m
-    );
+    const { project, material, cardIndex, useFlashcards } = current;
+    let updatedMateriais: Material[];
+    if (useFlashcards) {
+      const updatedFlashcards = (material.flashcards ?? []).map((f, i) =>
+        i === cardIndex ? { ...f, nextReviewAt, intervalLevel: level } : f
+      );
+      updatedMateriais = (project.materiais ?? []).map((m) =>
+        m.id === material.id ? { ...m, flashcards: updatedFlashcards } : m
+      );
+    } else {
+      const updatedCards = (material.cards ?? []).map((c, i) =>
+        i === cardIndex ? { ...c, nextReviewAt, intervalLevel: level } : c
+      );
+      updatedMateriais = (project.materiais ?? []).map((m) =>
+        m.id === material.id ? { ...m, cards: updatedCards } : m
+      );
+    }
     setSaving(true);
     try {
       await updateDoc(doc(db, "projects", project.id), {
