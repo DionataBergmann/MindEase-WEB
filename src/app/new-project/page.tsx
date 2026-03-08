@@ -12,6 +12,7 @@ import { Button, Input } from "@/components/atoms";
 import { scrollToElement } from "@/lib/scroll";
 import { useFirebaseGuard } from "@/hooks/useFirebaseGuard";
 import { processSources, getTopicDisplayName } from "@/lib/content-processing";
+import { randomUUID } from "@/lib/uuid";
 import type { ProcessContentResponse } from "@/types/process-content";
 
 export default function NewProjectPage() {
@@ -82,13 +83,16 @@ export default function NewProjectPage() {
       const title =
         projectName.trim() || firstName.replace(/\.(pdf|jpg|jpeg|png|webp)$/i, "") || "Sem título";
       const materiais = results.map((result, i) => ({
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         nomeArquivo: getTopicDisplayName(i, pdfFiles, imageFiles),
         resumo: result.resumo,
         resumoBreve: result.resumoBreve,
         resumoMedio: result.resumoMedio,
         resumoCompleto: result.resumoCompleto,
         cards: result.cards,
+        ...(result.flashcards && result.flashcards.length > 0
+          ? { flashcards: result.flashcards }
+          : {}),
       }));
       await addDoc(collection(db, "projects"), {
         userId: user.uid,

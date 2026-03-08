@@ -16,6 +16,7 @@ import {
   getTopicDisplayName,
   getSingleTopicDisplayName,
 } from "@/lib/content-processing";
+import { randomUUID } from "@/lib/uuid";
 import type { ProcessContentResponse } from "@/types/process-content";
 import type { Material } from "@/types/project";
 
@@ -109,7 +110,7 @@ export default function AddPdfPage() {
       if (currentMateriais.length === 0 && (data.resumo || (data.cards?.length ?? 0) > 0)) {
         currentMateriais = [
           {
-            id: crypto.randomUUID(),
+            id: randomUUID(),
             nomeArquivo: "PDF",
             resumo: data.resumo ?? "",
             cards: Array.isArray(data.cards) ? data.cards : [],
@@ -133,16 +134,20 @@ export default function AddPdfPage() {
           resumoMedio: result.resumoMedio,
           resumoCompleto: result.resumoCompleto,
           cards: result.cards,
+          ...(result.flashcards && result.flashcards.length > 0
+            ? { flashcards: result.flashcards }
+            : {}),
         };
       } else {
         const newMateriais: Material[] = results.map((r, i) => ({
-          id: crypto.randomUUID(),
+          id: randomUUID(),
           nomeArquivo: getTopicDisplayName(i, pdfFiles, imageFiles),
           resumo: r.resumo,
           resumoBreve: r.resumoBreve,
           resumoMedio: r.resumoMedio,
           resumoCompleto: r.resumoCompleto,
           cards: r.cards,
+          ...(r.flashcards && r.flashcards.length > 0 ? { flashcards: r.flashcards } : {}),
         }));
         updatedMateriais = [...currentMateriais, ...newMateriais];
       }
@@ -232,8 +237,16 @@ export default function AddPdfPage() {
 
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-3">
-                  Cards / Tópicos
+                  {result.flashcards && result.flashcards.length > 0
+                    ? "Questões (quiz) e Flashcards (estudo)"
+                    : "Cards / Tópicos"}
                 </h3>
+                {result.flashcards && result.flashcards.length > 0 && (
+                  <p className="text-xs text-muted-foreground mb-3">
+                    {result.cards.length} questão(s) para quiz · {result.flashcards.length} flashcard(s)
+                    para estudo
+                  </p>
+                )}
                 <ul className="space-y-4">
                   {result.cards.map((card, i) => (
                     <li key={i} className="p-4 rounded-lg border bg-background/50">

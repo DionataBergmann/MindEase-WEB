@@ -33,6 +33,7 @@ import { Progress } from "@/components/ui/progress";
 import { getFirebaseAuth, getFirestoreDb } from "@/lib/firebase";
 import { getPreferences } from "@/lib/preferences";
 import { getNextReviewDateFromLevel } from "@/lib/spaced-repetition";
+import { randomUUID } from "@/lib/uuid";
 import type { Project, ProjectCard, Material, MaterialStatus } from "@/types/project";
 
 function formatLastAccess(ts: Timestamp | undefined): string {
@@ -263,7 +264,7 @@ export default function ProjectPage() {
     setSaving(true);
     try {
       const newMaterial: Material = {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         nomeArquivo: newTaskTitle.trim(),
         resumo: "",
         cards: [],
@@ -332,7 +333,8 @@ export default function ProjectPage() {
   const concluidos = materials.filter((m) => getStatus(m) === "completed");
   const totalConcluidos = concluidos.length;
 
-  const estimateMin = (m: Material) => Math.max(5, (m.cards?.length ?? 0) * 3);
+  const estimateMin = (m: Material) =>
+    Math.max(5, ((m.flashcards?.length ?? m.cards?.length) ?? 0) * 3);
 
   return (
     <AppShell>
@@ -859,7 +861,10 @@ function Column({
   onDeleteMaterial?: (m: Material) => void;
   onStudyClick?: (m: Material) => void;
 }) {
-  const hasNoContent = (m: Material) => (m.cards?.length ?? 0) === 0 && !(m.resumo?.trim?.() ?? "");
+  const hasNoContent = (m: Material) =>
+    (m.cards?.length ?? 0) === 0 &&
+    (m.flashcards?.length ?? 0) === 0 &&
+    !(m.resumo?.trim?.() ?? "");
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

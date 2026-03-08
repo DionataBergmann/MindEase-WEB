@@ -1,19 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
+import { getProcessContentSystemPrompt } from "@/lib/prompts/process-content";
 import type { ProcessContentResponse } from "@/types/process-content";
-
-const systemPrompt = `Tu és um assistente que organiza conteúdo de estudo. Recebes um texto extraído de um PDF **ou uma ou mais imagens** (fotos de páginas de livro/documento). Se forem várias imagens, trata-as como páginas do mesmo material e combina o conteúdo. Deves responder APENAS com um JSON válido, sem markdown nem texto antes/depois, no seguinte formato:
-{
-  "resumo": "Resumo principal do material (1 parágrafo; será usado como padrão).",
-  "resumoBreve": "Resumo em 2-3 frases apenas, bem direto.",
-  "resumoMedio": "Resumo em um parágrafo (4-6 frases), com os pontos principais.",
-  "resumoCompleto": "Resumo em 2-3 parágrafos, com mais detalhes e contexto.",
-  "cards": [
-    { "titulo": "Título do tópico/card", "conteudo": "Conteúdo resumido desse tópico para estudo." },
-    ...
-  ]
-}
-Regras: divide o conteúdo em 3 a 8 cards lógicos (tópicos). Cada "conteudo" deve ser conciso (um parágrafo). Os três resumos (breve, médio, completo) devem cobrir o mesmo material em níveis de detalhe diferentes. Responde só o JSON.`;
 
 const SUPPORTED_IMAGE_PREFIX = /^data:image\/(jpeg|png|gif|webp);base64,/i;
 const HEIC_HEIF_PREFIX = /^data:image\/(heic|heif)(-sequence)?/i;
@@ -100,8 +88,8 @@ export async function POST(request: NextRequest) {
 
   const textInstruction = hasImages
     ? imageUrls.length > 1
-      ? "Analisa estas imagens (fotos de páginas do mesmo material). Gera um único JSON com resumos e cards para o conteúdo combinado de todas as páginas."
-      : "Analisa esta imagem (foto de página de livro ou documento) e gera o JSON com resumos e cards conforme as instruções do sistema."
+      ? "Analisa estas imagens (fotos de páginas do mesmo material). Gera o JSON conforme as instruções do sistema (formato PADRÃO ou QUESTÕES, conforme o tipo de conteúdo)."
+      : "Analisa esta imagem e gera o JSON conforme as instruções do sistema (formato PADRÃO ou QUESTÕES, conforme o tipo de conteúdo)."
     : "";
   const textBlock = hasText
     ? textInstruction
@@ -116,6 +104,7 @@ export async function POST(request: NextRequest) {
     : [{ type: "text", text: text.slice(0, 12000) }];
 
   try {
+    const systemPrompt = getProcessContentSystemPrompt();
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -125,12 +114,20 @@ export async function POST(request: NextRequest) {
       response_format: { type: "json_object" },
     });
 
-    const raw = completion.choices[0]?.message?.content;
+    let raw = completion.choices[0]?.message?.content?.trim() ?? "";
     if (!raw) {
       return NextResponse.json({ error: "A IA não retornou conteúdo." }, { status: 502 });
     }
+    // Remover bloco markdown se a IA envolveu o JSON em ```json ... ```
+    const jsonMatch = raw.match(/^```(?:json)?\s*([\s\S]*?)```$/);
+    if (jsonMatch) raw = jsonMatch[1].trim();
 
-    const parsed = JSON.parse(raw) as ProcessContentResponse;
+    let parsed: ProcessContentResponse;
+    try {
+      parsed = JSON.parse(raw) as ProcessContentResponse;
+    } catch {
+      return NextResponse.json({ error: "Resposta da IA em formato inesperado." }, { status: 502 });
+    }
     if (
       typeof parsed.resumo !== "string" ||
       !Array.isArray(parsed.cards) ||
@@ -144,18 +141,57 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json({ error: "Resposta da IA em formato inesperado." }, { status: 502 });
     }
-    // Normalize: ensure at least resumo exists; optional resumoBreve/Medio/Completo
+    // Normalize cards: aceitar opcoes/options e correctOptionIndex (número ou string); descartar se inválido
+    const cards = parsed.cards.map((c) => {
+      const card: ProcessContentResponse["cards"][number] = { titulo: c.titulo, conteudo: c.conteudo };
+      const raw = c as Record<string, unknown>;
+      const opcoes = Array.isArray(c.opcoes)
+        ? c.opcoes
+        : Array.isArray(raw.options) && raw.options.every((o: unknown) => typeof o === "string")
+          ? (raw.options as string[])
+          : null;
+      let idx = typeof c.correctOptionIndex === "number" ? c.correctOptionIndex : NaN;
+      if (Number.isNaN(idx) && typeof raw.correctOptionIndex === "string") {
+        idx = parseInt(raw.correctOptionIndex, 10);
+      }
+      if (Number.isNaN(idx) && typeof raw.correctIndex === "number") idx = raw.correctIndex;
+      if (
+        opcoes &&
+        opcoes.length > 0 &&
+        opcoes.every((o) => typeof o === "string") &&
+        Number.isInteger(idx) &&
+        idx >= 0 &&
+        idx < opcoes.length
+      ) {
+        card.opcoes = opcoes;
+        card.correctOptionIndex = idx;
+      }
+      return card;
+    });
     const resumoBreve = typeof parsed.resumoBreve === "string" ? parsed.resumoBreve : undefined;
     const resumoMedio = typeof parsed.resumoMedio === "string" ? parsed.resumoMedio : undefined;
     const resumoCompleto =
       typeof parsed.resumoCompleto === "string" ? parsed.resumoCompleto : undefined;
+    const flashcardsRaw = (parsed as ProcessContentResponse & { flashcards?: unknown }).flashcards;
+    const flashcards =
+      Array.isArray(flashcardsRaw) &&
+      flashcardsRaw.every(
+        (f): f is { titulo: string; conteudo: string } =>
+          typeof f === "object" &&
+          f !== null &&
+          typeof (f as { titulo?: unknown }).titulo === "string" &&
+          typeof (f as { conteudo?: unknown }).conteudo === "string"
+      )
+        ? flashcardsRaw
+        : undefined;
     const out: ProcessContentResponse = {
       resumo: parsed.resumo,
-      cards: parsed.cards,
+      cards,
     };
     if (resumoBreve) out.resumoBreve = resumoBreve;
     if (resumoMedio) out.resumoMedio = resumoMedio;
     if (resumoCompleto) out.resumoCompleto = resumoCompleto;
+    if (flashcards && flashcards.length > 0) out.flashcards = flashcards;
 
     return NextResponse.json(out);
   } catch (err) {
