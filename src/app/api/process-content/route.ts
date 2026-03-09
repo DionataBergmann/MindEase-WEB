@@ -88,8 +88,8 @@ export async function POST(request: NextRequest) {
 
   const textInstruction = hasImages
     ? imageUrls.length > 1
-      ? "Analisa estas imagens (fotos de páginas do mesmo material). Gera o JSON conforme as instruções do sistema (formato PADRÃO ou QUESTÕES, conforme o tipo de conteúdo)."
-      : "Analisa esta imagem e gera o JSON conforme as instruções do sistema (formato PADRÃO ou QUESTÕES, conforme o tipo de conteúdo)."
+      ? "Analisa estas imagens (fotos de páginas do mesmo material). Gera o JSON conforme as instruções do sistema (formato PADRÃO ou QUESTÕES, conforme o tipo de conteúdo). Se for prova/questões: transcreve o enunciado e as alternativas exatamente como aparecem na imagem, palavra por palavra, sem resumir."
+      : "Analisa esta imagem e gera o JSON conforme as instruções do sistema (formato PADRÃO ou QUESTÕES, conforme o tipo de conteúdo). Se for prova/questão: transcreve o enunciado e as alternativas exatamente como aparecem na imagem, palavra por palavra, sem resumir."
     : "";
   const textBlock = hasText
     ? textInstruction
