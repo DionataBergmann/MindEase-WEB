@@ -334,7 +334,7 @@ export default function ProjectPage() {
   const totalConcluidos = concluidos.length;
 
   const estimateMin = (m: Material) =>
-    Math.max(5, ((m.flashcards?.length ?? m.cards?.length) ?? 0) * 3);
+    Math.max(5, (m.flashcards?.length ?? m.cards?.length ?? 0) * 3);
 
   return (
     <AppShell>

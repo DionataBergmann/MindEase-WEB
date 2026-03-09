@@ -1,4 +1,3 @@
-
 function normalizeMultilineEnv(value: string): string {
   return value.replace(/\\n/g, "\n").trim();
 }

@@ -243,8 +243,8 @@ export default function AddPdfPage() {
                 </h3>
                 {result.flashcards && result.flashcards.length > 0 && (
                   <p className="text-xs text-muted-foreground mb-3">
-                    {result.cards.length} questão(s) para quiz · {result.flashcards.length} flashcard(s)
-                    para estudo
+                    {result.cards.length} questão(s) para quiz · {result.flashcards.length}{" "}
+                    flashcard(s) para estudo
                   </p>
                 )}
                 <ul className="space-y-4">
