@@ -25,6 +25,9 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      - name: Format check (Prettier)
+        run: yarn format:check
+
       - name: Test
         run: yarn test
 

@@ -49,7 +49,7 @@ import { MaterialFlashcardEditor } from "@/components/study/StudyFlashcardEditor
 import type { Project, Material, ProjectCard } from "@/types/project";
 
 function estimateMin(m: Material) {
-  const count = (m.flashcards?.length ?? m.cards?.length ?? 0);
+  const count = m.flashcards?.length ?? m.cards?.length ?? 0;
   return Math.max(5, count * 3);
 }
 
@@ -111,7 +111,9 @@ export default function MaterialStudyPage() {
         }
         const materiais: Material[] = Array.isArray(data.materiais)
           ? data.materiais
-          : data.resumo || (data.cards as unknown[])?.length > 0 || (data.flashcards as unknown[])?.length > 0
+          : data.resumo ||
+              (data.cards as unknown[])?.length > 0 ||
+              (data.flashcards as unknown[])?.length > 0
             ? [
                 {
                   id: "legacy",
@@ -513,12 +515,13 @@ export default function MaterialStudyPage() {
               }}
               onComplete={() => setShowTimerCompleteModal(true)}
             />
-            {activeTab === "flashcards" && (material?.cards?.length ?? 0) + (material?.flashcards?.length ?? 0) > 0 && (
-              <Button size="sm" onClick={handleConcluir} className="h-9 gap-1 px-3">
-                <CheckCircle className="w-3.5 h-3.5" />
-                Concluir tópico
-              </Button>
-            )}
+            {activeTab === "flashcards" &&
+              (material?.cards?.length ?? 0) + (material?.flashcards?.length ?? 0) > 0 && (
+                <Button size="sm" onClick={handleConcluir} className="h-9 gap-1 px-3">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Concluir tópico
+                </Button>
+              )}
             {modoFoco ? (
               <Button variant="outline" size="sm" onClick={exitModoFoco} className="h-9 gap-1 px-3">
                 Sair do modo foco

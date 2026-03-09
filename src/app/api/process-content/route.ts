@@ -143,7 +143,10 @@ export async function POST(request: NextRequest) {
     }
     // Normalize cards: aceitar opcoes/options e correctOptionIndex (número ou string); descartar se inválido
     const cards = parsed.cards.map((c) => {
-      const card: ProcessContentResponse["cards"][number] = { titulo: c.titulo, conteudo: c.conteudo };
+      const card: ProcessContentResponse["cards"][number] = {
+        titulo: c.titulo,
+        conteudo: c.conteudo,
+      };
       const raw = c as Record<string, unknown>;
       const opcoes = Array.isArray(c.opcoes)
         ? c.opcoes

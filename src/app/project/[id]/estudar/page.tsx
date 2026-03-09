@@ -99,7 +99,7 @@ function getCardsWithSource(project: Project): CardWithSource[] {
 function getCardsWithSourceForCarousel(project: Project): CardWithSource[] {
   if (project.materiais && project.materiais.length > 0) {
     return project.materiais.flatMap((m) => {
-      const set = (m.flashcards && m.flashcards.length > 0 ? m.flashcards : m.cards ?? []) as
+      const set = (m.flashcards && m.flashcards.length > 0 ? m.flashcards : (m.cards ?? [])) as
         | Array<{ titulo: string; conteudo: string }>
         | ProjectCard[];
       return set.map((item, i) => ({
@@ -263,7 +263,9 @@ export default function EstudarPage() {
     setSaving(true);
     try {
       const mat = materiais.find((m) => m.id === opts.materialId);
-      const useFlashcards = Boolean(mat && (mat as Material).flashcards && (mat as Material).flashcards!.length > 0);
+      const useFlashcards = Boolean(
+        mat && (mat as Material).flashcards && (mat as Material).flashcards!.length > 0
+      );
       let updated: Material[];
       if (opts.mode === "edit" && typeof opts.indexInMaterial === "number") {
         if (!mat) return;
@@ -279,7 +281,9 @@ export default function EstudarPage() {
           const newCards = (mat.cards ?? []).map((c, i) =>
             i === opts.indexInMaterial ? { ...c, titulo: opts.titulo, conteudo: opts.conteudo } : c
           );
-          updated = materiais.map((m) => (m.id === opts.materialId ? { ...m, cards: newCards } : m));
+          updated = materiais.map((m) =>
+            m.id === opts.materialId ? { ...m, cards: newCards } : m
+          );
         }
       } else if (opts.mode === "new") {
         if (!mat) return;
@@ -291,7 +295,9 @@ export default function EstudarPage() {
           );
         } else {
           const newCards = [...(mat.cards ?? []), { titulo: opts.titulo, conteudo: opts.conteudo }];
-          updated = materiais.map((m) => (m.id === opts.materialId ? { ...m, cards: newCards } : m));
+          updated = materiais.map((m) =>
+            m.id === opts.materialId ? { ...m, cards: newCards } : m
+          );
         }
       } else return;
       await updateDoc(doc(db, "projects", id), {
@@ -331,9 +337,7 @@ export default function EstudarPage() {
       );
     } else {
       const newCards = (mat.cards ?? []).filter((_, i) => i !== item.indexInMaterial);
-      updated = materiais.map((m) =>
-        m.id === item.materialId ? { ...m, cards: newCards } : m
-      );
+      updated = materiais.map((m) => (m.id === item.materialId ? { ...m, cards: newCards } : m));
     }
     setSaving(true);
     try {
@@ -483,7 +487,8 @@ export default function EstudarPage() {
             </h1>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-0.5 text-sm text-muted-foreground mt-0.5">
               <span>
-                ~{totalMin} min · {cardsForCarousel.length} card{cardsForCarousel.length !== 1 ? "s" : ""}
+                ~{totalMin} min · {cardsForCarousel.length} card
+                {cardsForCarousel.length !== 1 ? "s" : ""}
               </span>
               {!modoFoco && (
                 <span className="flex items-center gap-1">

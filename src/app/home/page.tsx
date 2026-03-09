@@ -260,8 +260,13 @@ export default function HomePage() {
     p.materiais?.forEach((m) => {
       const set =
         m.flashcards && m.flashcards.length > 0
-          ? m.flashcards.map((f) => ({ titulo: f.titulo, conteudo: f.conteudo, nextReviewAt: f.nextReviewAt, intervalLevel: f.intervalLevel }))
-          : m.cards ?? [];
+          ? m.flashcards.map((f) => ({
+              titulo: f.titulo,
+              conteudo: f.conteudo,
+              nextReviewAt: f.nextReviewAt,
+              intervalLevel: f.intervalLevel,
+            }))
+          : (m.cards ?? []);
       set.forEach((card, cardIndex) => {
         if (isCardDueForReview(card)) dueCards.push({ project: p, material: m, cardIndex });
       });
@@ -382,7 +387,12 @@ export default function HomePage() {
           </div>
           <div className="grid grid-cols-2 gap-3 w-full sm:w-auto sm:flex sm:flex-shrink-0">
             {!loading && dueCards.length > 0 && (
-              <Button asChild variant="outline" size="default" className="min-w-[11rem] sm:min-w-[13rem]">
+              <Button
+                asChild
+                variant="outline"
+                size="default"
+                className="min-w-[11rem] sm:min-w-[13rem]"
+              >
                 <Link
                   href="/review"
                   className="inline-flex items-center justify-center gap-2 w-full py-2.5"
